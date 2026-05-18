@@ -1,232 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personal Budget Tracker</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#6a0dad">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
-body{background:linear-gradient(135deg,#6a0dad,#b57edc);min-height:100vh;padding:20px;color:#333;}
-.container{max-width:1000px;margin:auto}
-h1{text-align:center;color:white;margin-bottom:20px}
-.card{background:white;padding:20px;border-radius:15px;margin-bottom:20px;box-shadow:0 10px 25px rgba(0,0,0,0.15)}
-.balance{font-size:30px;font-weight:bold;margin-top:10px}
-.green{color:#2ecc71}.orange{color:#f39c12}.red{color:#e74c3c}
-.progress-bar{height:15px;background:#eee;border-radius:50px;overflow:hidden;margin-top:10px}
-.progress{height:100%;width:0%;background:#6a0dad;transition:0.3s}
-input,select{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:1px solid #ddd}
-button{padding:10px;margin-top:10px;border:none;border-radius:8px;background:#6a0dad;color:white;cursor:pointer}
-button:hover{background:#4b0082}
-.small-btn{background:#e74c3c;margin-left:5px}
-.edit-btn{background:#f39c12;margin-left:5px}
-table{width:100%;margin-top:15px;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}
-.score{font-size:20px;font-weight:bold;color:#6a0dad;margin-top:10px}
-.chart-container{max-width:350px;margin:auto}
-@media(min-width:768px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:25px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Human Receipt | Global Confessional</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Font for sleek, modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="container">
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="logo">THE HUMAN <span class="highlight">RECEIPT</span></div>
+        <div class="live-counter"><span class="pulse-dot"></span> 4,219 live voyeurs</div>
+    </header>
 
-<h1>💜 Personal Budget Tracker</h1>
+    <!-- 24-Hour Micro-Graffiti Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker-title">LIVE GRAFFITI:</div>
+        <div class="ticker">
+            <span class="ticker-item">"I secretly hate my best friend’s fiancé and I’m trying to subtly ruin the wedding..."</span>
+            <span class="ticker-item">"Anonymity is a hell of a drug."</span>
+            <span class="ticker-item">"To whoever stole my labeled milk in block C: I know it was you."</span>
+        </div>
+    </div>
 
-<!-- Budget Input -->
-<div class="card">
-<h3>Add to Budget</h3>
-<input type="number" id="budgetInput" placeholder="Enter amount">
-<button onclick="addBudget()">Add Amount</button>
-<button onclick="resetMonth()" class="small-btn">Monthly Reset</button>
-</div>
+    <!-- Main Container -->
+    <main class="container">
 
-<!-- Remaining Balance & Financial Score -->
-<div class="card">
-<h3>Remaining Balance</h3>
-<div id="remaining" class="balance">KES 0</div>
-<div class="progress-bar"><div id="progress" class="progress"></div></div>
-<div class="score" id="healthScore"></div>
-</div>
+        <!-- Quick Submit Box -->
+        <section class="submit-box">
+            <h3>Drop an Anonymous Receipt</h3>
+            <div class="tag-selector">
+                <button class="tag-btn active" data-type="text">💬 Text Drama</button>
+                <button class="tag-btn" data-type="money">💸 Money Guilt</button>
+                <button class="tag-btn" data-type="secret">🤫 Raw Secret</button>
+            </div>
+            <textarea placeholder="Spill it. No accounts, no logs, complete anonymity..."></textarea>
+            <button class="submit-action-btn">Post to the Wall</button>
+        </section>
 
-<!-- Add Expense & Table -->
-<div class="card">
-<h3>Add Expense</h3>
-<select id="category">
-<option>Groceries</option>
-<option>Transport</option>
-<option>Rent</option>
-<option>Entertainment</option>
-<option>Bills</option>
-<option>Other</option>
-</select>
-<input type="number" id="amount" placeholder="Enter amount">
-<button onclick="addExpense()">Add Expense</button>
+        <!-- Feed Filtering Tabs -->
+        <div class="feed-tabs">
+            <button class="tab active">Trending</button>
+            <button class="tab">Latest</button>
+            <button class="tab">Most Chaotic</button>
+        </div>
 
-<table>
-<thead>
-<tr><th>Category</th><th>Amount</th><th>Date</th><th>Actions</th></tr>
-</thead>
-<tbody id="expenseTable"></tbody>
-</table>
-</div>
+        <!-- Main Stream Feed -->
+        <section class="feed">
 
-<!-- Current Month Pie Chart -->
-<div class="card">
-<h3>Current Month Spending</h3>
-<div class="chart-container">
-<canvas id="pieChart"></canvas>
-</div>
-</div>
+            <!-- Card 1: Text Receipt -->
+            <div class="card card-text">
+                <div class="card-header">
+                    <span class="card-badge">💬 TEXT RECEIPT</span>
+                    <span class="card-time">3m ago</span>
+                </div>
+                <div class="card-body">
+                    <p class="receipt-content">"My boyfriend said he didn't reply to my texts for 14 hours because his phone accidentally fell behind the car battery while he was driving. Is this even physically possible or am I being played?"</p>
+                </div>
+                <div class="card-actions">
+                    <button class="vote-btn red-flag">🚩 Red Flag <span class="pct">84%</span></button>
+                    <button class="vote-btn valid-excuse">🛡️ Valid Excuse <span class="pct">16%</span></button>
+                </div>
+                <div class="ai-box">
+                    <button class="ai-trigger-btn">✨ Get AI Reply to leave them on read</button>
+                </div>
+            </div>
 
-<!-- History Bar Graph -->
-<div class="card">
-<h3>Monthly History (Last 6 Months)</h3>
-<div class="chart-container">
-<canvas id="barChart"></canvas>
-</div>
-</div>
+            <!-- Card 2: Money Receipt -->
+            <div class="card card-money">
+                <div class="card-header">
+                    <span class="card-badge">💸 MONEY RECEIPT</span>
+                    <span class="card-time">14m ago</span>
+                </div>
+                <div class="card-body">
+                    <p class="receipt-content">"Just spent $230 on a highly specialized premium espresso machine. I have used it exactly twice in three months and now it acts as an incredibly expensive hook to hang my kitchen dish towels on."</p>
+                </div>
+                <div class="card-actions">
+                    <button class="vote-btn absolve">😇 Absolve Sin <span class="pct">71%</span></button>
+                    <button class="vote-btn cast-stone">🪨 Cast Stone <span class="pct">29%</span></button>
+                </div>
+                <div class="ai-box">
+                    <button class="ai-trigger-btn">✨ Get AI Financial Roast</button>
+                </div>
+            </div>
 
-</div>
+            <!-- Card 3: Secret Receipt -->
+            <div class="card card-secret">
+                <div class="card-header">
+                    <span class="card-badge">🤫 SECRET RECEIPT</span>
+                    <span class="card-time">1h ago</span>
+                </div>
+                <div class="card-body">
+                    <p class="receipt-content">"I've been working a fully remote job for six months. I automated 90% of my tasks in the first week using python scripts. I work maybe 30 minutes a day and spend the rest playing video games. My manager called me a 'stellar cornerstone asset' yesterday."</p>
+                </div>
+                <div class="card-actions">
+                    <button class="vote-btn relatable">🤝 Relatable <span class="pct">93%</span></button>
+                    <button class="vote-btn wild">🤯 Absolute Wild <span class="pct">7%</span></button>
+                </div>
+                <div class="ai-box">
+                    <button class="ai-trigger-btn">✨ Get Chaotic AI Therapy</button>
+                </div>
+            </div>
 
-<script>
-if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js')}
-
-// Data
-let totalBudget=parseFloat(localStorage.getItem("totalBudget"))||0;
-let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
-let history=JSON.parse(localStorage.getItem("history"))||[];
-
-// Charts
-const pieCtx=document.getElementById("pieChart").getContext("2d");
-const barCtx=document.getElementById("barChart").getContext("2d");
-let pieChart,barChart;
-
-// Save data
-function saveData(){
-localStorage.setItem("totalBudget",totalBudget);
-localStorage.setItem("expenses",JSON.stringify(expenses));
-localStorage.setItem("history",JSON.stringify(history));
-}
-
-// Add budget
-function addBudget(){
-let val=parseFloat(document.getElementById("budgetInput").value);
-if(!val) return;
-totalBudget+=val;
-document.getElementById("budgetInput").value="";
-saveData();
-updateUI();
-}
-
-// Add expense
-function addExpense(){
-let cat=document.getElementById("category").value;
-let amt=parseFloat(document.getElementById("amount").value);
-if(!amt) return;
-let date=new Date().toISOString().split('T')[0];
-expenses.push({category:cat,amount:amt,date});
-document.getElementById("amount").value="";
-saveData();
-updateUI();
-}
-
-// Delete/Edit expense
-function deleteExpense(i){expenses.splice(i,1);saveData();updateUI();}
-function editExpense(i){
-let newAmount=prompt("Edit amount:",expenses[i].amount);
-if(newAmount!==null){expenses[i].amount=parseFloat(newAmount);}
-let newDate=prompt("Edit date (YYYY-MM-DD):",expenses[i].date);
-if(newDate!==null){expenses[i].date=newDate;}
-saveData();updateUI();
-}
-
-// Reset month (move to history)
-function resetMonth(){
-if(confirm("Move this month data to history and reset?")){
-let month=new Date().toISOString().slice(0,7);
-history.push({month,totalBudget,expenses});
-totalBudget=0;
-expenses=[];
-saveData();
-updateUI();
-}
-}
-
-// Total spent
-function totalSpent(){return expenses.reduce((sum,e)=>sum+e.amount,0);}
-
-// Update UI
-function updateUI(){
-let spent=totalSpent();
-let remaining=totalBudget-spent;
-let percent=totalBudget?(spent/totalBudget)*100:0;
-
-// Balance
-let remainingEl=document.getElementById("remaining");
-remainingEl.textContent="KES "+remaining.toFixed(2);
-if(remaining>totalBudget*0.5){remainingEl.className="balance green"}
-else if(remaining>totalBudget*0.2){remainingEl.className="balance orange"}
-else{remainingEl.className="balance red"}
-
-// Financial Score
-let score=totalBudget? Math.max(0,100-percent):0;
-document.getElementById("healthScore").textContent="Financial Health Score: "+score.toFixed(0)+"/100";
-
-// Table
-updateTable();
-// Charts
-updatePieChart();
-updateBarChart();
-}
-
-// Update Table
-function updateTable(){
-let table=document.getElementById("expenseTable");
-table.innerHTML="";
-expenses.forEach((e,i)=>{
-table.innerHTML+=`<tr>
-<td>${e.category}</td>
-<td>KES ${e.amount}</td>
-<td>${e.date}</td>
-<td>
-<button class="edit-btn" onclick="editExpense(${i})">Edit</button>
-<button class="small-btn" onclick="deleteExpense(${i})">Delete</button>
-</td>
-</tr>`;
-});
-}
-
-// Pie chart
-function updatePieChart(){
-let data={};
-expenses.forEach(e=>{data[e.category]=(data[e.category]||0)+e.amount;});
-if(pieChart) pieChart.destroy();
-pieChart=new Chart(pieCtx,{
-type:"pie",
-data:{labels:Object.keys(data),datasets:[{data:Object.values(data)}]},
-options:{responsive:true,maintainAspectRatio:false}
-});
-}
-
-// Bar chart (last 6 months)
-function updateBarChart(){
-let months=history.slice(-6);
-let labels=months.map(m=>m.month);
-let totals=months.map(m=>m.expenses.reduce((sum,e)=>sum+e.amount,0));
-if(barChart) barChart.destroy();
-barChart=new Chart(barCtx,{
-type:"bar",
-data:{labels:labels,datasets:[{label:"Spent KES",data:totals,backgroundColor:"#6a0dad"}]},
-options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
-});
-}
-
-updateUI();
-</script>
+        </section>
+    </main>
 
 </body>
 </html>
