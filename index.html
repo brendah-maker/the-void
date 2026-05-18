@@ -3,28 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Global GC | Upgraded</title>
+    <title>The Global GC | Live Realtime Production</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- html2canvas library loaded to convert UI components seamlessly to downloadable image cards -->
+    
+    <!-- 1. External Production CDN Asset Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <div class="chat-wrapper">
         
-        <!-- App Header -->
+        <!-- App Header Container Row -->
         <header class="chat-header">
             <div class="header-info">
                 <h2>THE GLOBAL GC</h2>
-                <p><span class="online-pulse"></span> <span id="online-counter">14,892</span> online</p>
+                <p><span class="online-pulse"></span> <span id="online-counter">Connecting...</span></p>
             </div>
             <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
         </header>
 
-        <!-- Rules Modal -->
+        <!-- Rules Layout Overlay Modal -->
         <div id="rules-overlay" class="rules-modal hidden">
             <div class="rules-content">
                 <h3>The Code of Conduct</h3>
@@ -38,51 +40,48 @@
             </div>
         </div>
 
-        <!-- Curation Highlights Deck (Horizontal Card Lane) -->
+        <!-- Curation Highlights Feed Subsystem (Horizontal Cards) -->
         <div class="highlights-section">
             <div class="section-title">🔥 TRENDING IN THE LAST 10M</div>
             <div class="highlights-container" id="highlights-deck">
-                <!-- Preset Viral Item -->
-                <div class="hl-card" id="preset-hl">
+                <!-- Fallback card placeholder until user interaction aggregates traffic -->
+                <div class="hl-card" id="initial-hl-placeholder">
                     <div class="hl-card-body">
-                        <p class="hl-meta">Anon #4920 · 241 🔥</p>
-                        <p class="hl-text">Staring at a leak under my kitchen sink pretending I know what a wrench does.</p>
+                        <p class="hl-meta">System · Notice</p>
+                        <p class="hl-text">Viral anonymous thoughts with more than 15+ reactions dock here dynamically.</p>
                     </div>
-                    <button class="hl-share-btn" onclick="generateShareCard('preset-hl')">
-                        <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Live Message Feed Block Viewport -->
+        <!-- Live Core Message Stream Block -->
         <div class="feed-container-wrapper">
             <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
                 <div class="msg-bubble system-broadcast">
                     <div class="msg-meta">🔒 SECURITY NOTICE</div>
-                    <div class="msg-text">Welcome. Prove your humanity by passing the security challenge in the input bar below to unlock full message streaming permissions.</div>
+                    <div class="msg-text">Welcome to the live feed. Pass the challenge inside the input bar below to register your anonymous session token and unlock global text broadcasting privileges.</div>
                 </div>
             </main>
 
-            <!-- Floating Stream Pause Alert Badge Button -->
+            <!-- Floating Stream Pause Navigation Badge Button -->
             <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
                 ↓ <span id="missed-count">0</span> new messages
             </button>
         </div>
 
-        <!-- Integrated Gatekeeping Input Area Configuration Layout -->
+        <!-- Integrated Gatekeeping Input Console Frame Layout -->
         <footer class="chat-input-area">
             
             <!-- Anti-Bot Verification UI Panel Block -->
             <div id="bot-gatekeeper" class="verification-panel">
                 <span class="gate-label">🛡️ Verification Challenge:</span>
-                <span class="gate-question">Type <strong style="color:#6366f1;">"void"</strong> to prove humanity:</span>
-                <input type="text" id="verification-input" placeholder="Type here..." oninput="checkGatekeeperChallenge(this)">
+                <span class="gate-question">Type <strong style="color:#6366f1;">"void"</strong> to reveal feed inputs:</span>
+                <input type="text" id="verification-input" placeholder="Verify..." oninput="checkGatekeeperChallenge(this)">
             </div>
 
-            <!-- Main Typing Box System (Initially Blocked) -->
+            <!-- Main Live Messaging Inputs Bar Row Container (Initially Blocked) -->
             <div class="input-container disabled-state" id="input-bar-container">
-                <input type="text" id="user-input" placeholder="Unlock chat via verification above..." maxlength="280" onkeypress="handleKeyPress(event)" disabled>
+                <input type="text" id="user-input" placeholder="Unlock chat via verification challenge..." maxlength="280" onkeypress="handleKeyPress(event)" disabled>
                 <button class="send-btn" id="send-btn" onclick="sendUserMessage()" disabled>
                     <svg viewBox="0 0 24 24" width="18" height="18">
                         <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
@@ -94,7 +93,24 @@
 
     </div>
 
+    <!-- 2. Core Operational Javascript Realtime Sync Layer Logic -->
     <script>
+        // --- PRODUCTION DATABASE INJECTION CONFIGURATIONS ---
+        // Replace these placeholder strings with your actual unique keys found on your Supabase settings dashboard
+        const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+        const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
+        
+        let supabase = null;
+        if (SUPABASE_URL !== "https://YOUR_PROJECT_ID.supabase.co") {
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        // Generate persistent local browser random user footprint ID session identifier
+        if (!localStorage.getItem('anon_user_tag')) {
+            localStorage.setItem('anon_user_tag', Math.floor(1000 + Math.random() * 9000));
+        }
+        const myUserHandle = `Anon #` + localStorage.getItem('anon_user_tag');
+
         const chatStream = document.getElementById('chat-stream');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
@@ -110,29 +126,13 @@
         let isFrozen = false;
         let missedMessagesCount = 0;
         let isVerified = false;
-        let lastMessageTimestamp = Date.now();
-
-        const simulationPool = [
-            "My neighbor is playing smooth jazz at 3 AM. I can't even be mad because his taste is immaculate.",
-            "Accidentally said 'Love you bye' to my Uber driver. Currently packing to leave the continent.",
-            "Hot take: Working 2 hours a day productively beats pretending to look busy for 8 hours.",
-            "Just saw someone eat a whole lemon like an apple on the bus. No expression. Pure villain energy.",
-            "Spent my entire rent budget on concert tickets because 'YOLO' and now I'm cooking tap water.",
-            "Deleting all social apps to find inner peace, yet here I am on an anonymous live chat at midnight."
-        ];
-
-        const sparkPrompts = [
-            "🔥 THE SPARK: If you had to delete one social app from existence forever, why is it LinkedIn?",
-            "🔥 THE SPARK: What's a completely harmless hill you are willing to die on?",
-            "🔥 THE SPARK: Tell the chat a random secret you are taking to your absolute grave.",
-            "🔥 THE SPARK: What is the single dumbest purchase you have ever made that you don't regret?"
-        ];
+        let activeReplyTarget = null;
+        let localVotedMessageIDs = JSON.parse(localStorage.getItem('voted_pool')) || [];
 
         function toggleRules() {
             document.getElementById('rules-overlay').classList.toggle('hidden');
         }
 
-        // Anti-Bot Logic Evaluation
         function checkGatekeeperChallenge(inputField) {
             if (inputField.value.trim().toLowerCase() === "void") {
                 isVerified = true;
@@ -142,6 +142,9 @@
                 sendBtn.disabled = false;
                 userInput.placeholder = "Say something worth keeping...";
                 userInput.focus();
+                
+                // Initialize database pipelines once human verification triggers successfully
+                initializeRealtimeAppEngine();
             }
         }
 
@@ -163,48 +166,175 @@
             chatStream.scrollTop = chatStream.scrollHeight;
         }
 
-        function handleVote(button) {
-            const countSpan = button.querySelector('.count');
-            let currentCount = parseInt(countSpan.innerText);
-            if (!button.classList.contains('voted')) {
-                button.classList.add('voted');
-                countSpan.innerText = currentCount + 1;
+        function setReplyTarget(username) {
+            if (!isVerified) return;
+            activeReplyTarget = username;
+            userInput.placeholder = `Replying to ${username}...`;
+            userInput.focus();
+        }
 
-                // Push to highlights if interaction spikes
-                if (currentCount + 1 >= 15 && !button.dataset.highlighted) {
-                    button.dataset.highlighted = true;
-                    pushToHighlights(button.closest('.msg-bubble'), currentCount + 1);
-                }
+        // --- CORE DATABASE ENGINE MANAGEMENT HANDLERS ---
+        function initializeRealtimeAppEngine() {
+            if (!supabase) {
+                console.warn("Supabase configuration placeholder keys detected. Operating in local-only demo fallback framework until your real keys are added.");
+                startLocalFallbackSimulation();
+                return;
+            }
+
+            // Fetch initial history logs payload on boot
+            fetchHistoricalMessageLogs();
+
+            // Open websocket connection pipeline channels
+            supabase
+                .channel('room-global')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                    renderIncomingMessageBubble(payload.new);
+                })
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, payload => {
+                    updateLiveBubbleReactionUI(payload.new);
+                })
+                .subscribe();
+
+            // Track continuous user heartbeat data signals
+            trackLiveOnlineMetrics();
+        }
+
+        async function fetchHistoricalMessageLogs() {
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(40);
+
+            if (data) {
+                // Reverse log list array arrays to show correct descending scrolling sequence ordering
+                data.reverse().forEach(msgRow => renderIncomingMessageBubble(msgRow, true));
+                snapToBottom();
             }
         }
 
-        function pushToHighlights(bubbleElement, score) {
-            const text = bubbleElement.querySelector('.msg-text').innerText;
-            const meta = bubbleElement.querySelector('.msg-meta').innerText;
-            const uniqueId = "hl-" + Math.floor(Math.random() * 100000);
+        async function sendUserMessage() {
+            const text = userInput.value.trim();
+            if (!text || !isVerified) return;
+
+            const messageTextPayload = activeReplyTarget ? `<span class="reply-tag">@${activeReplyTarget}</span> ${text}` : text;
             
+            userInput.value = '';
+            userInput.placeholder = "Say something worth keeping...";
+            activeReplyTarget = null;
+            triggerCooldown();
+
+            if (!supabase) {
+                // Fallback simulation processing if no database configurations exist
+                processLocalMessageEcho(myUserHandle, messageTextPayload);
+                return;
+            }
+
+            // Write row object parameters asynchronously directly to remote tracking tables
+            await supabase.from('messages').insert([
+                { sender: myUserHandle, content: messageTextPayload, fire_score: 0 }
+            ]);
+        }
+
+        function renderIncomingMessageBubble(msgRow, isHistoricalLoad = false) {
+            const isMe = msgRow.sender === myUserHandle;
+            const uniqueNodeID = `msg-${msgRow.id || Math.floor(Math.random() * 100000)}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `msg-bubble ${isMe ? 'user-msg' : ''}`;
+            bubble.id = uniqueNodeID;
+            
+            // Highlight locally voted nodes elements matching session storage cache registers
+            const hasVotedThis = localVotedMessageIDs.includes(msgRow.id);
+
+            bubble.innerHTML = `
+                <div class="msg-meta" onclick="setReplyTarget('${msgRow.sender}')">${msgRow.sender} ${isMe ? '' : '(↩ Reply)'}</div>
+                <div class="msg-text">${msgRow.content}</div>
+                <div class="msg-reactions">
+                    <button class="react-btn fire ${hasVotedThis ? 'voted' : ''}" onclick="processReactionVote('${msgRow.id}', this)">
+                        🔥 <span class="count">${msgRow.fire_score || 0}</span>
+                    </button>
+                </div>
+            `;
+
+            chatStream.appendChild(bubble);
+
+            if (!isHistoricalLoad) {
+                if (isFrozen && !isMe) {
+                    missedMessagesCount++;
+                    missedCountSpan.innerText = missedMessagesCount;
+                    streamLockBadge.classList.remove('hidden');
+                } else {
+                    snapToBottom();
+                }
+            }
+
+            // Auto-curate element item to highlight shelf container deck on load if interaction scores validate parameters
+            if (msgRow.fire_score >= 15) {
+                pushMessageToHighlightDeck(msgRow);
+            }
+        }
+
+        async function processReactionVote(messageID, buttonElement) {
+            if (buttonElement.classList.contains('voted') || !supabase) return;
+
+            buttonElement.classList.add('voted');
+            const countSpan = buttonElement.querySelector('.count');
+            let updatedScore = parseInt(countSpan.innerText) + 1;
+            countSpan.innerText = updatedScore;
+
+            localVotedMessageIDs.push(messageID);
+            localStorage.setItem('voted_pool', JSON.stringify(localVotedMessageIDs));
+
+            // Write point mutation updates out directly matching targets
+            await supabase.rpc('increment_fire_score', { row_id: messageID });
+        }
+
+        function updateLiveBubbleReactionUI(msgRow) {
+            const targetedMsgNode = document.getElementById(`msg-${msgRow.id}`);
+            if (targetedMsgNode) {
+                const countSpan = targetedMsgNode.querySelector('.fire .count');
+                if (countSpan && !targetedMsgNode.querySelector('.fire').classList.contains('voted')) {
+                    countSpan.innerText = msgRow.fire_score;
+                }
+            }
+
+            if (msgRow.fire_score >= 15) {
+                pushMessageToHighlightDeck(msgRow);
+            }
+        }
+
+        function pushMessageToHighlightDeck(msgRow) {
+            const placeholder = document.getElementById('initial-hl-placeholder');
+            if (placeholder) placeholder.remove();
+
+            const targetCardID = `hl-${msgRow.id}`;
+            let existingCardNode = document.getElementById(targetCardID);
+
+            if (existingCardNode) {
+                existingCardNode.querySelector('.hl-meta').innerText = `${msgRow.sender} · ${msgRow.fire_score} 🔥`;
+                return;
+            }
+
             const card = document.createElement('div');
             card.className = 'hl-card';
-            card.id = uniqueId;
+            card.id = targetCardID;
             card.innerHTML = `
                 <div class="hl-card-body">
-                    <p class="hl-meta">${meta} · ${score} 🔥</p>
-                    <p class="hl-text">${text}</p>
+                    <p class="hl-meta">${msgRow.sender} · ${msgRow.fire_score} 🔥</p>
+                    <p class="hl-text">${msgRow.content.replace(/<[^>]*>/g, '')}</p>
                 </div>
-                <button class="hl-share-btn" onclick="generateShareCard('${uniqueId}')">
+                <button class="hl-share-btn" onclick="generateShareCard('${targetCardID}')">
                     <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
                 </button>
             `;
-            
+
             highlightsDeck.insertBefore(card, highlightsDeck.firstChild);
-            if(highlightsDeck.children.length > 6) highlightsDeck.lastChild.remove();
+            if (highlightsDeck.children.length > 6) highlightsDeck.lastChild.remove();
         }
 
-        // HTML2Canvas Engine Screenshot Generator Configuration 
         function generateShareCard(elementId) {
             const card = document.getElementById(elementId);
-            
-            // Create a styled off-screen clone specifically tailored for canvas download layout proportions
             const clone = card.cloneNode(true);
             clone.style.width = "400px";
             clone.style.position = "absolute";
@@ -213,9 +343,8 @@
             clone.style.border = "2px solid #6366f1";
             clone.style.padding = "24px";
             clone.style.borderRadius = "16px";
-            clone.querySelector('.hl-share-btn').remove(); // Strip away operational UI button
+            clone.querySelector('.hl-share-btn').remove();
             
-            // Inject watermark label asset node
             const watermark = document.createElement('div');
             watermark.innerText = "via THE GLOBAL GC";
             watermark.style.fontSize = "10px";
@@ -235,29 +364,6 @@
                 link.click();
                 clone.remove();
             });
-        }
-
-        function sendUserMessage() {
-            const text = userInput.value.trim();
-            if (!text || !isVerified) return;
-
-            const randomId = Math.floor(1000 + Math.random() * 9000);
-            const newMsg = document.createElement('div');
-            newMsg.className = 'msg-bubble user-msg';
-            newMsg.innerHTML = `
-                <div class="msg-meta">You (Anon #${randomId})</div>
-                <div class="msg-text">${text}</div>
-                <div class="msg-reactions">
-                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">1</span></button>
-                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">0</span></button>
-                </div>
-            `;
-            
-            chatStream.appendChild(newMsg);
-            userInput.value = '';
-            lastMessageTimestamp = Date.now();
-            snapToBottom();
-            triggerCooldown();
         }
 
         function handleKeyPress(event) {
@@ -288,60 +394,31 @@
             }, 1000);
         }
 
-        // Live Mock Streaming Simulation Engine
-        setInterval(() => {
-            const randomMsgText = simulationPool[Math.floor(Math.random() * simulationPool.length)];
-            const randomId = Math.floor(1000 + Math.random() * 9000);
-            const randomFire = Math.floor(2 + Math.random() * 25);
+        function trackLiveOnlineMetrics() {
+            // Simulated user counter fluctuate around baseline numbers for styling layouts
+            onlineCounter.innerText = "14,892 online";
+            setInterval(() => {
+                let parsed = parseInt(onlineCounter.innerText.replace(',', ''));
+                let offset = Math.floor(Math.random() * 8) - 3;
+                onlineCounter.innerText = (parsed + offset).toLocaleString() + " online";
+            }, 4000);
+        }
 
-            const incomingMsg = document.createElement('div');
-            incomingMsg.className = 'msg-bubble';
-            incomingMsg.innerHTML = `
-                <div class="msg-meta">Anon #${randomId}</div>
-                <div class="msg-text">${randomMsgText}</div>
-                <div class="msg-reactions">
-                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">${randomFire}</span></button>
-                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">0</span></button>
-                </div>
-            `;
+        // --- FALLBACK INTERFACE ENGINE LAYOUTS (No Database Keys Connected) ---
+        function startLocalFallbackSimulation() {
+            onlineCounter.innerText = "Demo Interface Room Mode Active";
+            const dummyPool = ["Hello? Is this thing live?", "Testing out multiple line feeds.", "Looks super clean.", "Love the layout updates."];
+            setInterval(() => {
+                const randomText = dummyPool[Math.floor(Math.random() * dummyPool.length)];
+                const mockedPayload = { id: Math.floor(Math.random() * 10000), sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`, content: randomText, fire_score: Math.floor(Math.random() * 4) };
+                renderIncomingMessageBubble(mockedPayload);
+            }, 5000);
+        }
 
-            chatStream.appendChild(incomingMsg);
-            
-            if (chatStream.children.length > 30) chatStream.removeChild(chatStream.firstElementChild);
-
-            if (isFrozen) {
-                missedMessagesCount++;
-                missedCountSpan.innerText = missedMessagesCount;
-                streamLockBadge.classList.remove('hidden');
-            } else {
-                chatStream.scrollTop = chatStream.scrollHeight;
-            }
-        }, 4000);
-
-        // The Spark Activity Heartbeat Monitor (Checks every 5s if chat is stalling)
-        setInterval(() => {
-            const idleTime = Date.now() - lastMessageTimestamp;
-            // Inject structural prompt challenge if zero message traffic activity for 15 seconds
-            if (idleTime > 15000) {
-                lastMessageTimestamp = Date.now(); // reset timer loop
-                const randomSpark = sparkPrompts[Math.floor(Math.random() * sparkPrompts.length)];
-                
-                const sparkMsg = document.createElement('div');
-                sparkMsg.className = 'msg-bubble system-spark';
-                sparkMsg.innerHTML = `
-                    <div class="msg-meta">⚡ THE SPARK SYSTEM</div>
-                    <div class="msg-text" style="color: #a5b4fc; font-weight: 600;">${randomSpark}</div>
-                `;
-                chatStream.appendChild(sparkMsg);
-                if (!isFrozen) chatStream.scrollTop = chatStream.scrollHeight;
-            }
-        }, 5000);
-
-        setInterval(() => {
-            let currentCounterVal = parseInt(onlineCounter.innerText.replace(',', ''));
-            let flux = Math.floor(Math.random() * 8) - 3;
-            onlineCounter.innerText = (currentCounterVal + flux).toLocaleString();
-        }, 4000);
+        function processLocalMessageEcho(user, text) {
+            const localPayload = { id: Math.floor(Math.random() * 10000), sender: user, content: text, fire_score: 0 };
+            renderIncomingMessageBubble(localPayload);
+        }
     </script>
 </body>
 </html>
