@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanctuary | Release Your Thoughts</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -12,12 +13,11 @@
         <h1>Sanctuary</h1>
         <p class="subtitle">A safe, anonymous space to unpack your thoughts.</p>
         <div class="encouragement-banner">
-            Whatever is weighing on you, you don't have to carry it alone. Speaking your truth is the first step toward lightness. <strong>Your voice matters here.</strong>
+            Whatever is weighing on you, you don't have to carry it alone. <strong>Your voice matters here.</strong>
         </div>
     </header>
 
     <main class="app-container">
-        
         <section class="post-box">
             <textarea id="vent-input" placeholder="What's weighing on your mind?"></textarea>
             <div class="action-row">
@@ -25,16 +25,13 @@
             </div>
         </section>
 
-        <section id="feed-container">
-            </section>
-
+        <section id="feed-container"></section>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Your specific Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
             authDomain: "sanctuary-9859d.firebaseapp.com",
@@ -45,12 +42,10 @@
             measurementId: "G-ZSVW56N08G"
         };
 
-        // Initialize Firebase & Firestore
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const postsRef = collection(db, "vents");
 
-        // --- Identity Logic (Remembers you on this device) ---
         function getMyIdentity() {
             let myName = localStorage.getItem('sanctuary_user');
             if (!myName) {
@@ -61,65 +56,46 @@
             return myName;
         }
 
-        // --- Create a New Post ---
         window.createNewPost = async () => {
             const textInput = document.getElementById('vent-input');
             const text = textInput.value.trim();
             if(!text) return;
-
-            try {
-                await addDoc(postsRef, {
-                    username: getMyIdentity(),
-                    text: text,
-                    timestamp: Date.now(),
-                    replies: []
-                });
-                textInput.value = '';
-            } catch (e) {
-                console.error("Error adding post: ", e);
-                alert("Make sure your Firestore Rules are set to 'Test Mode'!");
-            }
+            await addDoc(postsRef, {
+                username: getMyIdentity(),
+                text: text,
+                timestamp: Date.now(),
+                replies: []
+            });
+            textInput.value = '';
         };
 
-        // --- Add a Reply ---
-        window.addReply = async (postId) => {
+        window.addReply = async (postId, emojiText = null) => {
             const input = document.getElementById(`input-${postId}`);
-            const text = input.value.trim();
+            const text = emojiText || input.value.trim();
             if(!text) return;
 
             const postDoc = doc(db, "vents", postId);
-            try {
-                await updateDoc(postDoc, {
-                    replies: arrayUnion({
-                        username: getMyIdentity(),
-                        text: text,
-                        time: Date.now()
-                    })
-                });
-                input.value = '';
-            } catch (e) {
-                console.error("Error adding reply: ", e);
-            }
+            await updateDoc(postDoc, {
+                replies: arrayUnion({
+                    username: getMyIdentity(),
+                    text: text,
+                    time: Date.now()
+                })
+            });
+            if(!emojiText) input.value = '';
         };
 
-        // --- Real-time Feed Listener ---
         const q = query(postsRef, orderBy("timestamp", "desc"), limit(50));
         onSnapshot(q, (snapshot) => {
             const feed = document.getElementById('feed-container');
             feed.innerHTML = '';
-            snapshot.forEach((doc) => {
-                renderPost(doc.id, doc.data());
-            });
+            snapshot.forEach((doc) => renderPost(doc.id, doc.data()));
         });
 
-        // --- Render UI for Posts ---
         function renderPost(id, data) {
             const feed = document.getElementById('feed-container');
-            const date = new Date(data.timestamp);
-            const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + date.toLocaleDateString();
-            
+            const timeString = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const replies = data.replies || [];
-            const hasManyReplies = replies.length > 5;
 
             const card = document.createElement('div');
             card.className = 'vent-card new-post-animation';
@@ -129,29 +105,28 @@
                 <div class="card-footer">Shared at ${timeString}</div>
                 
                 <div class="card-actions">
-                    <button class="reply-btn" onclick="toggleReply('${id}')">
-                        Conversation (${replies.length})
-                    </button>
+                    <button class="reply-btn" onclick="toggleReply('${id}')">Conversation (${replies.length})</button>
                 </div>
 
                 <div id="replies-${id}" class="replies-container" style="display:none;">
+                    <div class="emoji-bar">
+                        <span onclick="addReply('${id}', '🤍')">🤍</span>
+                        <span onclick="addReply('${id}', '🫂')">🫂</span>
+                        <span onclick="addReply('${id}', '✨')">✨</span>
+                        <span onclick="addReply('${id}', '🌊')">🌊</span>
+                        <span onclick="addReply('${id}', '🌱')">🌱</span>
+                    </div>
                     <div id="list-${id}">
-                        ${replies.map((r, index) => `
-                            <div class="reply-item" style="${hasManyReplies && index < replies.length - 5 ? 'display:none;' : ''}">
-                                <div class="reply-header">
-                                    <span class="reply-user">${r.username}</span>
-                                    <span class="reply-time">${new Date(r.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                                </div>
+                        ${replies.map(r => `
+                            <div class="reply-item">
+                                <span class="reply-user">${r.username}</span>
                                 <div class="reply-body">${r.text}</div>
                             </div>
                         `).join('')}
                     </div>
-                    
-                    ${hasManyReplies ? `<button id="more-${id}" class="read-more-btn" onclick="expandReplies('${id}')">View older replies...</button>` : ''}
-
                     <div class="reply-input-area">
-                        <input type="text" id="input-${id}" class="reply-field" placeholder="Reply anonymously...">
-                        <button class="reply-submit" onclick="addReply('${id}')">Reply</button>
+                        <input type="text" id="input-${id}" class="reply-field" placeholder="Reply...">
+                        <button class="reply-submit" onclick="addReply('${id}')">Send</button>
                     </div>
                 </div>
             `;
@@ -161,13 +136,6 @@
         window.toggleReply = (id) => {
             const el = document.getElementById(`replies-${id}`);
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
-        };
-
-        window.expandReplies = (id) => {
-            const list = document.getElementById(`list-${id}`);
-            const items = list.querySelectorAll('.reply-item');
-            items.forEach(item => item.style.display = 'block');
-            document.getElementById(`more-${id}`).style.display = 'none';
         };
     </script>
 </body>
