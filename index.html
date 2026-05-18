@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Sanctuary | Anonymous Vent Feed</title>
-    <!-- This line links your HTML to your CSS file -->
+    <title>Sanctuary | Anonymous Vent Feed</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- HEADER & SAFETY BANNER -->
     <header class="app-header">
         <h1>Sanctuary</h1>
         <p class="subtitle">A safe, anonymous space to unpack your thoughts.</p>
@@ -18,10 +16,8 @@
         </div>
     </header>
 
-    <!-- MAIN APPLICATION AREA -->
     <main class="app-container">
         
-        <!-- THE POSTING FORM -->
         <section class="post-box">
             <textarea id="vent-input" placeholder="What's weighing on your mind? (Keep it anonymous...)"></textarea>
             <div class="action-row">
@@ -29,44 +25,78 @@
             </div>
         </section>
 
-        <!-- THE FEED -->
         <section id="feed-container">
-            <!-- Default placeholder post -->
-            <div class="vent-card">
+            <div class="vent-card" id="post-1">
                 <span class="user-tag">@AnonymousOwl</span>
                 <p class="vent-text">Sometimes the quietest rooms are the loudest ones in my head. Just needed to type this out.</p>
                 <div class="card-footer">Shared 2 minutes ago</div>
+                
+                <button class="reply-btn" onclick="toggleReply('1')">Join Conversation</button>
+                <div id="replies-1" class="replies-container" style="display:none;">
+                    <div id="list-1"></div>
+                    <div class="reply-input-area">
+                        <input type="text" id="input-1" class="reply-field" placeholder="Reply anonymously...">
+                        <button class="reply-submit" onclick="addReply('1')">Reply</button>
+                    </div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- INTERACTION SCRIPT -->
     <script>
+        function getRandomName() {
+            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion'];
+            return `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
+        }
+
         function createNewPost() {
             const textInput = document.getElementById('vent-input');
             const text = textInput.value.trim();
-            
             if(!text) return;
 
-            // Generate a random anonymous username
-            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter'];
-            const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
-            const username = `@Anonymous${randomAnimal}`;
+            const postId = Date.now();
+            const username = getRandomName();
 
-            // Create the HTML structure for the new post
             const newPost = document.createElement('div');
             newPost.className = 'vent-card new-post-animation';
             newPost.innerHTML = `
                 <span class="user-tag">${username}</span>
                 <p class="vent-text">${text}</p>
                 <div class="card-footer">Shared just now</div>
+                <button class="reply-btn" onclick="toggleReply('${postId}')">Join Conversation</button>
+                <div id="replies-${postId}" class="replies-container" style="display:none;">
+                    <div id="list-${postId}"></div>
+                    <div class="reply-input-area">
+                        <input type="text" id="input-${postId}" class="reply-field" placeholder="Reply anonymously...">
+                        <button class="reply-submit" onclick="addReply('${postId}')">Reply</button>
+                    </div>
+                </div>
             `;
 
-            // Push it to the top of the feed and clear the text box
             const feed = document.getElementById('feed-container');
             feed.insertBefore(newPost, feed.firstChild);
             textInput.value = '';
+        }
+
+        function toggleReply(postId) {
+            const container = document.getElementById(`replies-${postId}`);
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function addReply(postId) {
+            const input = document.getElementById(`input-${postId}`);
+            const list = document.getElementById(`list-${postId}`);
+            const text = input.value.trim();
+            if(!text) return;
+
+            const replyName = getRandomName();
+            const replyDiv = document.createElement('div');
+            replyDiv.className = 'reply-item';
+            replyDiv.innerHTML = `<span class="reply-user">${replyName}</span> ${text}`;
+            
+            list.appendChild(replyDiv);
+            input.value = '';
         }
     </script>
 </body>
