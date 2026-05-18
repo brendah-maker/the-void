@@ -30,8 +30,27 @@
 
     </main>
 
-    <script>
-        // 1. IDENTITY LOGIC: Check if user already has a name stored in their browser
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your specific Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
+            authDomain: "sanctuary-9859d.firebaseapp.com",
+            projectId: "sanctuary-9859d",
+            storageBucket: "sanctuary-9859d.firebasestorage.app",
+            messagingSenderId: "1013187735582",
+            appId: "1:1013187735582:web:d4eeff6a6a93fefc533e0f",
+            measurementId: "G-ZSVW56N08G"
+        };
+
+        // Initialize Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const postsRef = collection(db, "vents");
+
+        // --- Identity Logic (Remembers you on this device) ---
         function getMyIdentity() {
             let myName = localStorage.getItem('sanctuary_user');
             if (!myName) {
@@ -42,91 +61,114 @@
             return myName;
         }
 
-        // 2. TIME LOGIC: Formats the current date and time
-        function getCurrentTime() {
-            const now = new Date();
-            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + now.toLocaleDateString();
-        }
-
-        function createNewPost() {
+        // --- Create a New Post ---
+        window.createNewPost = async () => {
             const textInput = document.getElementById('vent-input');
             const text = textInput.value.trim();
             if(!text) return;
 
-            const postId = Date.now();
-            const username = getMyIdentity(); // Uses the same name every time
-            const timestamp = getCurrentTime();
+            try {
+                await addDoc(postsRef, {
+                    username: getMyIdentity(),
+                    text: text,
+                    timestamp: Date.now(),
+                    replies: []
+                });
+                textInput.value = '';
+            } catch (e) {
+                console.error("Error adding post: ", e);
+                alert("Make sure your Firestore Rules are set to 'Test Mode'!");
+            }
+        };
 
-            const newPost = document.createElement('div');
-            newPost.className = 'vent-card new-post-animation';
-            newPost.innerHTML = `
-                <span class="user-tag">${username}</span>
-                <p class="vent-text">${text}</p>
-                <div class="card-footer">Shared at ${timestamp}</div>
-                
-                <div class="card-actions">
-                    <button class="reply-btn" onclick="toggleReply('${postId}')">Join Conversation</button>
-                </div>
-
-                <div id="replies-${postId}" class="replies-container" style="display:none;">
-                    <div id="list-${postId}"></div>
-                    <button id="more-${postId}" class="read-more-btn" style="display:none;" onclick="expandReplies('${postId}')">View more replies...</button>
-                    <div class="reply-input-area">
-                        <input type="text" id="input-${postId}" class="reply-field" placeholder="Reply anonymously...">
-                        <button class="reply-submit" onclick="addReply('${postId}')">Reply</button>
-                    </div>
-                </div>
-            `;
-
-            const feed = document.getElementById('feed-container');
-            feed.insertBefore(newPost, feed.firstChild);
-            textInput.value = '';
-        }
-
-        function toggleReply(postId) {
-            const container = document.getElementById(`replies-${postId}`);
-            container.style.display = container.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function addReply(postId) {
+        // --- Add a Reply ---
+        window.addReply = async (postId) => {
             const input = document.getElementById(`input-${postId}`);
-            const list = document.getElementById(`list-${postId}`);
             const text = input.value.trim();
             if(!text) return;
 
-            const replyName = getMyIdentity(); // Uses the same stored identity
-            const replyTime = getCurrentTime();
+            const postDoc = doc(db, "vents", postId);
+            try {
+                await updateDoc(postDoc, {
+                    replies: arrayUnion({
+                        username: getMyIdentity(),
+                        text: text,
+                        time: Date.now()
+                    })
+                });
+                input.value = '';
+            } catch (e) {
+                console.error("Error adding reply: ", e);
+            }
+        };
+
+        // --- Real-time Feed Listener ---
+        const q = query(postsRef, orderBy("timestamp", "desc"), limit(50));
+        onSnapshot(q, (snapshot) => {
+            const feed = document.getElementById('feed-container');
+            feed.innerHTML = '';
+            snapshot.forEach((doc) => {
+                renderPost(doc.id, doc.data());
+            });
+        });
+
+        // --- Render UI for Posts ---
+        function renderPost(id, data) {
+            const feed = document.getElementById('feed-container');
+            const date = new Date(data.timestamp);
+            const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + date.toLocaleDateString();
             
-            const replyDiv = document.createElement('div');
-            replyDiv.className = 'reply-item';
-            replyDiv.innerHTML = `
-                <div class="reply-header">
-                    <span class="reply-user">${replyName}</span>
-                    <span class="reply-time">${replyTime}</span>
+            const replies = data.replies || [];
+            const hasManyReplies = replies.length > 5;
+
+            const card = document.createElement('div');
+            card.className = 'vent-card new-post-animation';
+            card.innerHTML = `
+                <span class="user-tag">${data.username}</span>
+                <p class="vent-text">${data.text}</p>
+                <div class="card-footer">Shared at ${timeString}</div>
+                
+                <div class="card-actions">
+                    <button class="reply-btn" onclick="toggleReply('${id}')">
+                        Conversation (${replies.length})
+                    </button>
                 </div>
-                <div class="reply-body">${text}</div>
+
+                <div id="replies-${id}" class="replies-container" style="display:none;">
+                    <div id="list-${id}">
+                        ${replies.map((r, index) => `
+                            <div class="reply-item" style="${hasManyReplies && index < replies.length - 5 ? 'display:none;' : ''}">
+                                <div class="reply-header">
+                                    <span class="reply-user">${r.username}</span>
+                                    <span class="reply-time">${new Date(r.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                </div>
+                                <div class="reply-body">${r.text}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${hasManyReplies ? `<button id="more-${id}" class="read-more-btn" onclick="expandReplies('${id}')">View older replies...</button>` : ''}
+
+                    <div class="reply-input-area">
+                        <input type="text" id="input-${id}" class="reply-field" placeholder="Reply anonymously...">
+                        <button class="reply-submit" onclick="addReply('${id}')">Reply</button>
+                    </div>
+                </div>
             `;
-            
-            list.appendChild(replyDiv);
-            input.value = '';
-
-            const replies = list.getElementsByClassName('reply-item');
-            if (replies.length > 5) {
-                for (let i = 0; i < replies.length - 5; i++) {
-                    replies[i].style.display = 'none';
-                }
-                document.getElementById(`more-${postId}`).style.display = 'block';
-            }
+            feed.appendChild(card);
         }
 
-        function expandReplies(postId) {
-            const list = document.getElementById(`list-${postId}`);
-            const replies = list.getElementsByClassName('reply-item');
-            for (let i = 0; i < replies.length; i++) {
-                replies[i].style.display = 'block';
-            }
-            document.getElementById(`more-${postId}`).style.display = 'none';
-        }
+        window.toggleReply = (id) => {
+            const el = document.getElementById(`replies-${id}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.expandReplies = (id) => {
+            const list = document.getElementById(`list-${id}`);
+            const items = list.querySelectorAll('.reply-item');
+            items.forEach(item => item.style.display = 'block');
+            document.getElementById(`more-${id}`).style.display = 'none';
+        };
     </script>
 </body>
 </html>
