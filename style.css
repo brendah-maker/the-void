@@ -1,58 +1,103 @@
+/* --- Base Styles --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: #0f0f11; color: #e4e4e7; font-family: sans-serif; padding: 20px; }
+body { 
+    background-color: #0d0d0f; 
+    color: #e2e2e6; 
+    font-family: 'Inter', -apple-system, sans-serif; 
+    padding: 20px;
+    line-height: 1.6;
+}
 
-.app-header { text-align: center; max-width: 600px; margin: 40px auto 20px auto; }
-.app-header h1 { font-size: 2.5rem; color: #f4f4f5; }
-.subtitle { color: #a1a1aa; margin-bottom: 15px; }
+/* --- Typography & Header --- */
+.app-header { text-align: center; max-width: 650px; margin: 50px auto 30px auto; }
+.app-header h1 { font-size: 2.8rem; color: #ffffff; letter-spacing: -1.5px; font-weight: 800; }
+.subtitle { color: #8e8e93; font-size: 1.1rem; margin-bottom: 20px; }
 
-/* New Encouragement Banner */
 .encouragement-banner { 
-    background-color: #161b22; 
-    border: 1px dashed #30363d; 
-    color: #8b949e; 
-    padding: 16px; 
-    border-radius: 12px; 
-    font-size: 0.9rem; 
-    margin-top: 20px;
-    line-height: 1.5;
+    background: linear-gradient(145deg, #16161a, #1a1a1e);
+    border: 1px solid #2c2c31;
+    color: #a1a1aa; 
+    padding: 20px; 
+    border-radius: 16px; 
+    font-size: 0.95rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.encouragement-banner strong { color: #818cf8; }
+
+/* --- Layout --- */
+.app-container { max-width: 650px; margin: 0 auto; }
+
+/* --- Input Area --- */
+.post-box { 
+    background-color: #16161a; 
+    border: 1px solid #2c2c31; 
+    border-radius: 18px; 
+    padding: 20px; 
+    margin-bottom: 30px;
+    transition: transform 0.2s ease;
+}
+.post-box:focus-within { border-color: #4f46e5; transform: translateY(-2px); }
+
+#vent-input { 
+    width: 100%; height: 120px; background: transparent; border: none; 
+    color: #ffffff; font-size: 1.1rem; outline: none; resize: none; 
+}
+#vent-input::placeholder { color: #52525b; }
+
+.action-row { display: flex; justify-content: flex-end; border-top: 1px solid #2c2c31; padding-top: 15px; }
+#submit-btn { 
+    background-color: #4f46e5; color: white; border: none; padding: 12px 24px; 
+    border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+#submit-btn:hover { background-color: #4338ca; transform: scale(1.05); }
+
+/* --- Cards --- */
+.vent-card { 
+    background-color: #16161a; 
+    border: 1px solid #2c2c31; 
+    border-radius: 18px; 
+    padding: 24px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.encouragement-banner strong { color: #6366f1; }
-
-.app-container { max-width: 600px; margin: 0 auto; }
-.post-box { background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 16px; margin-bottom: 24px; }
-#vent-input { width: 100%; height: 100px; background: transparent; border: none; color: #f4f4f5; font-size: 1.05rem; outline: none; resize: none; }
-.action-row { display: flex; justify-content: flex-end; border-top: 1px solid #27272a; padding-top: 12px; }
-#submit-btn { background-color: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; }
-
-.vent-card { background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 20px; margin-bottom: 16px; position: relative; }
-.user-tag { font-size: 0.85rem; color: #a1a1aa; background-color: #27272a; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 12px; }
-.vent-text { font-size: 1.05rem; margin-bottom: 8px; }
-.card-footer { font-size: 0.8rem; color: #71717a; margin-bottom: 10px; }
-
-.reply-btn { background: transparent; border: 1px solid #3f3f46; color: #a1a1aa; padding: 6px 14px; border-radius: 15px; font-size: 0.75rem; cursor: pointer; }
-.reply-btn:hover { border-color: #6366f1; color: white; }
-
-.replies-container { margin-top: 15px; padding-top: 15px; border-top: 1px solid #27272a; }
-
-.reply-item { font-size: 0.9rem; color: #e4e4e7; margin-bottom: 10px; padding: 8px 12px; background: #1c1c1f; border-radius: 8px; }
-.reply-user { color: #a1a1aa; font-weight: bold; margin-right: 8px; font-size: 0.8rem; }
-
-/* Read More Button */
-.read-more-btn {
-    background: none;
-    border: none;
-    color: #6366f1;
-    font-size: 0.8rem;
-    cursor: pointer;
-    margin-bottom: 10px;
-    padding: 0;
+.user-tag { 
+    font-size: 0.8rem; color: #818cf8; background-color: rgba(79, 70, 229, 0.1); 
+    padding: 4px 10px; border-radius: 6px; font-weight: 700; display: inline-block; margin-bottom: 15px;
 }
-.read-more-btn:hover { text-decoration: underline; }
 
-.reply-input-area { display: flex; margin-top: 12px; gap: 10px; }
-.reply-field { flex: 1; background: #0f0f11; border: 1px solid #27272a; border-radius: 6px; color: white; padding: 8px; font-size: 0.85rem; }
-.reply-submit { background: #6366f1; border: none; color: white; padding: 0 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+.vent-text { font-size: 1.15rem; color: #f4f4f5; margin-bottom: 12px; font-weight: 400; }
+.card-footer { font-size: 0.8rem; color: #71717a; margin-bottom: 15px; }
 
-.new-post-animation { animation: fadeIn 0.4s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+/* --- Interactions --- */
+.card-actions { border-top: 1px solid #2c2c31; padding-top: 15px; }
+.reply-btn { 
+    background: transparent; border: 1px solid #3f3f46; color: #a1a1aa; 
+    padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+}
+.reply-btn:hover { background: #27272a; color: white; }
+
+.replies-container { margin-top: 20px; animation: slideDown 0.3s ease-out; }
+
+.reply-item { 
+    background: #1c1c21; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; border-left: 3px solid #4f46e5;
+}
+.reply-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.reply-user { font-size: 0.75rem; color: #818cf8; font-weight: bold; }
+.reply-time { font-size: 0.7rem; color: #52525b; }
+.reply-body { font-size: 0.95rem; color: #d4d4d8; }
+
+.reply-input-area { display: flex; margin-top: 15px; gap: 10px; }
+.reply-field { 
+    flex: 1; background: #0d0d0f; border: 1px solid #2c2c31; border-radius: 10px; 
+    color: white; padding: 10px; font-size: 0.9rem; outline: none;
+}
+.reply-field:focus { border-color: #4f46e5; }
+.reply-submit { background: #4f46e5; border: none; color: white; padding: 0 15px; border-radius: 10px; cursor: pointer; }
+
+.read-more-btn { color: #818cf8; background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 5px 0; }
+
+/* --- Animations --- */
+.new-post-animation { animation: postReveal 0.5s ease; }
+@keyframes postReveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
