@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 1. External Production CDN Asset Libraries -->
+    <!-- External Production CDN Asset Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -44,7 +44,6 @@
         <div class="highlights-section">
             <div class="section-title">🔥 TRENDING IN THE LAST 10M</div>
             <div class="highlights-container" id="highlights-deck">
-                <!-- Fallback card placeholder until user interaction aggregates traffic -->
                 <div class="hl-card" id="initial-hl-placeholder">
                     <div class="hl-card-body">
                         <p class="hl-meta">System · Notice</p>
@@ -74,12 +73,12 @@
             
             <!-- Anti-Bot Verification UI Panel Block -->
             <div id="bot-gatekeeper" class="verification-panel">
-                <span class="gate-label">🛡️ Verification Challenge:</span>
-                <span class="gate-question">Type <strong style="color:#6366f1;">"void"</strong> to reveal feed inputs:</span>
+                <span class="gate-label">🛡️ Verification:</span>
+                <span class="gate-question">Type <strong style="color:#6366f1;">"void"</strong> to reveal inputs:</span>
                 <input type="text" id="verification-input" placeholder="Verify..." oninput="checkGatekeeperChallenge(this)">
             </div>
 
-            <!-- Main Live Messaging Inputs Bar Row Container (Initially Blocked) -->
+            <!-- Main Live Messaging Inputs Bar Row Container -->
             <div class="input-container disabled-state" id="input-bar-container">
                 <input type="text" id="user-input" placeholder="Unlock chat via verification challenge..." maxlength="280" onkeypress="handleKeyPress(event)" disabled>
                 <button class="send-btn" id="send-btn" onclick="sendUserMessage()" disabled>
@@ -93,7 +92,7 @@
 
     </div>
 
-    <!-- 2. Core Operational Javascript Realtime Sync Layer Logic -->
+    <!-- Core Operational Javascript Realtime Sync Layer Logic -->
     <script>
         // --- PRODUCTION DATABASE INJECTION CONFIGURATIONS ---
         // Replace these placeholder strings with your actual unique keys found on your Supabase settings dashboard
@@ -101,8 +100,13 @@
         const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
         
         let supabase = null;
-        if (SUPABASE_URL !== "https://YOUR_PROJECT_ID.supabase.co") {
-            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Check if user has updated the placeholders before initializing
+        if (SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT_ID")) {
+            try {
+                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch (e) {
+                console.error("Failed to initialize Supabase client client library context:", e);
+            }
         }
 
         // Generate persistent local browser random user footprint ID session identifier
@@ -136,15 +140,24 @@
         function checkGatekeeperChallenge(inputField) {
             if (inputField.value.trim().toLowerCase() === "void") {
                 isVerified = true;
+                
+                // 1. Instantly clear verification blockades and reveal inputs layout
                 botGatekeeper.classList.add('hidden');
                 inputContainer.classList.remove('disabled-state');
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 userInput.placeholder = "Say something worth keeping...";
-                userInput.focus();
                 
-                // Initialize database pipelines once human verification triggers successfully
-                initializeRealtimeAppEngine();
+                // 2. Safe execution hook wrapper step
+                try {
+                    initializeRealtimeAppEngine();
+                } catch (err) {
+                    console.warn("Database engine skipped initialization, switching to demo room sandbox framework setup.", err);
+                    startLocalFallbackSimulation();
+                }
+
+                // 3. Hand focus transition to elements safely
+                setTimeout(() => { userInput.focus(); }, 50);
             }
         }
 
@@ -176,7 +189,6 @@
         // --- CORE DATABASE ENGINE MANAGEMENT HANDLERS ---
         function initializeRealtimeAppEngine() {
             if (!supabase) {
-                console.warn("Supabase configuration placeholder keys detected. Operating in local-only demo fallback framework until your real keys are added.");
                 startLocalFallbackSimulation();
                 return;
             }
@@ -195,7 +207,6 @@
                 })
                 .subscribe();
 
-            // Track continuous user heartbeat data signals
             trackLiveOnlineMetrics();
         }
 
@@ -207,7 +218,6 @@
                 .limit(40);
 
             if (data) {
-                // Reverse log list array arrays to show correct descending scrolling sequence ordering
                 data.reverse().forEach(msgRow => renderIncomingMessageBubble(msgRow, true));
                 snapToBottom();
             }
@@ -225,12 +235,10 @@
             triggerCooldown();
 
             if (!supabase) {
-                // Fallback simulation processing if no database configurations exist
                 processLocalMessageEcho(myUserHandle, messageTextPayload);
                 return;
             }
 
-            // Write row object parameters asynchronously directly to remote tracking tables
             await supabase.from('messages').insert([
                 { sender: myUserHandle, content: messageTextPayload, fire_score: 0 }
             ]);
@@ -244,7 +252,6 @@
             bubble.className = `msg-bubble ${isMe ? 'user-msg' : ''}`;
             bubble.id = uniqueNodeID;
             
-            // Highlight locally voted nodes elements matching session storage cache registers
             const hasVotedThis = localVotedMessageIDs.includes(msgRow.id);
 
             bubble.innerHTML = `
@@ -269,7 +276,6 @@
                 }
             }
 
-            // Auto-curate element item to highlight shelf container deck on load if interaction scores validate parameters
             if (msgRow.fire_score >= 15) {
                 pushMessageToHighlightDeck(msgRow);
             }
@@ -286,7 +292,6 @@
             localVotedMessageIDs.push(messageID);
             localStorage.setItem('voted_pool', JSON.stringify(localVotedMessageIDs));
 
-            // Write point mutation updates out directly matching targets
             await supabase.rpc('increment_fire_score', { row_id: messageID });
         }
 
@@ -395,7 +400,6 @@
         }
 
         function trackLiveOnlineMetrics() {
-            // Simulated user counter fluctuate around baseline numbers for styling layouts
             onlineCounter.innerText = "14,892 online";
             setInterval(() => {
                 let parsed = parseInt(onlineCounter.innerText.replace(',', ''));
@@ -407,12 +411,25 @@
         // --- FALLBACK INTERFACE ENGINE LAYOUTS (No Database Keys Connected) ---
         function startLocalFallbackSimulation() {
             onlineCounter.innerText = "Demo Interface Room Mode Active";
-            const dummyPool = ["Hello? Is this thing live?", "Testing out multiple line feeds.", "Looks super clean.", "Love the layout updates."];
+            const dummyPool = [
+                "My neighbor is playing smooth jazz at 3 AM. I can't even be mad because his taste is immaculate.",
+                "Accidentally said 'Love you bye' to my Uber driver. Currently packing to leave the continent.",
+                "Hot take: Working 2 hours a day productively beats pretending to look busy for 8 hours.",
+                "Just saw someone eat a whole lemon like an apple on the bus. No expression. Pure villain energy.",
+                "Spent my entire rent budget on concert tickets because 'YOLO' and now I'm cooking tap water.",
+                "Deleting all social apps to find inner peace, yet here I am on an anonymous live chat at midnight."
+            ];
+            
             setInterval(() => {
                 const randomText = dummyPool[Math.floor(Math.random() * dummyPool.length)];
-                const mockedPayload = { id: Math.floor(Math.random() * 10000), sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`, content: randomText, fire_score: Math.floor(Math.random() * 4) };
+                const mockedPayload = { 
+                    id: Math.floor(Math.random() * 10000), 
+                    sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`, 
+                    content: randomText, 
+                    fire_score: Math.floor(Math.random() * 4) 
+                };
                 renderIncomingMessageBubble(mockedPayload);
-            }, 5000);
+            }, 4000);
         }
 
         function processLocalMessageEcho(user, text) {
