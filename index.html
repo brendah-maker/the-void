@@ -3,487 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Global GC | Live Realtime Production</title>
-    
-    <!-- External Assets -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <style>
-        :root {
-            --bg-color: #0c0e14;
-            --card-bg: #141722;
-            --accent-color: #6366f1;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --border-color: #1e293b;
-            --system-msg: #1e293b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .chat-wrapper {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            background: var(--bg-color);
-        }
-
-        /* Header */
-        .chat-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(12, 14, 20, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 10;
-        }
-
-        .header-info h2 { font-size: 1.1rem; letter-spacing: 1px; font-weight: 800; }
-        .header-info p { font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; }
-        
-        .online-pulse {
-            height: 8px; width: 8px; background: #10b981; border-radius: 50%;
-            margin-right: 8px; box-shadow: 0 0 10px #10b981;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-        .rule-btn {
-            background: var(--card-bg); border: 1px solid var(--border-color);
-            color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem;
-        }
-
-        /* Highlights */
-        .highlights-section { background: #000; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-        .section-title { font-size: 0.65rem; font-weight: 800; color: var(--accent-color); padding: 0 1rem 5px; }
-        .highlights-container { display: flex; overflow-x: auto; gap: 12px; padding: 5px 1rem; scrollbar-width: none; }
-        .hl-card {
-            min-width: 220px; background: var(--card-bg); padding: 12px; border-radius: 12px;
-            border: 1px solid var(--border-color); position: relative;
-        }
-        .hl-meta { font-size: 0.65rem; color: var(--accent-color); margin-bottom: 4px; font-weight: 600; }
-        .hl-text { font-size: 0.8rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .hl-share-btn { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--text-secondary); cursor: pointer; }
-
-        /* Message Stream */
-        .feed-container-wrapper { flex: 1; position: relative; overflow: hidden; }
-        .message-stream { height: 100%; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth; }
-        
-        .msg-bubble { background: var(--card-bg); padding: 12px 16px; border-radius: 16px; max-width: 85%; align-self: flex-start; border: 1px solid var(--border-color); position: relative; }
-        .user-msg { align-self: flex-end; border-color: var(--accent-color); background: #1a1c2e; }
-        .system-broadcast { align-self: center; background: var(--system-msg); text-align: center; border: none; }
-
-        .msg-meta { font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; cursor: pointer; }
-        .msg-meta:hover { color: var(--accent-color); }
-        .msg-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); word-break: break-word; }
-        .reply-tag { color: var(--accent-color); font-weight: 600; display: inline-block; margin-right: 4px; }
-
-        .msg-reactions { margin-top: 8px; display: flex; gap: 8px; }
-        .react-btn { background: #0c0e14; border: 1px solid var(--border-color); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
-        .react-btn.voted-fire { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
-        .react-btn.voted-ice { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        .react-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        /* Badge for new messages */
-        .stream-badge {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: var(--accent-color); color: white; padding: 8px 16px; border-radius: 20px;
-            font-size: 0.8rem; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 5;
-        }
-
-        /* Input Area */
-        .chat-input-area { padding: 1.5rem; background: var(--bg-color); border-top: 1px solid var(--border-color); }
-        .input-container { 
-            display: flex; background: var(--card-bg); border-radius: 16px; padding: 8px; 
-            border: 1px solid var(--border-color); transition: 0.3s; 
-        }
-        .input-container.disabled-state { opacity: 0.5; pointer-events: none; }
-        .input-container:focus-within { border-color: var(--accent-color); }
-        
-        #user-input {
-            flex: 1; background: none; border: none; color: white; padding: 12px;
-            font-family: inherit; font-size: 0.95rem; outline: none;
-        }
-        .send-btn { background: var(--accent-color); border: none; color: white; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .cooldown-text { text-align: center; font-size: 0.75rem; color: var(--accent-color); margin-top: 10px; font-weight: 600; }
-
-        /* Rules Modal */
-        .rules-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-        .rules-content { background: var(--card-bg); padding: 2rem; border-radius: 20px; max-width: 400px; border: 1px solid var(--accent-color); }
-        .rules-content h3 { margin-bottom: 1rem; color: var(--accent-color); }
-        .rules-content ul { list-style: none; margin-bottom: 1.5rem; }
-        .rules-content li { margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary); }
-        .close-rules-btn { width: 100%; padding: 12px; background: var(--accent-color); border: none; color: white; border-radius: 12px; font-weight: 700; cursor: pointer; }
-
-        .hidden { display: none !important; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-    </style>
+    <title>The Sanctuary | Anonymous Vent Feed</title>
+    <!-- This line links your HTML to your CSS file -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="chat-wrapper">
-        <header class="chat-header">
-            <div class="header-info">
-                <h2>THE GLOBAL GC</h2>
-                <p><span class="online-pulse"></span> <span id="online-counter">64,201 nodes connected</span></p>
-            </div>
-            <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
-        </header>
-
-        <div id="rules-overlay" class="rules-modal hidden">
-            <div class="rules-content">
-                <h3>The Code of Conduct</h3>
-                <ul>
-                    <li>✨ Complete anonymity. No logs, no profiles.</li>
-                    <li>💬 Click any username row to immediately send a reply.</li>
-                    <li>⏳ Posting triggers a strict 60-second typing cooldown.</li>
-                    <li>🔥 Upvote with Fire. Freeze the baseline noise with Ice.</li>
-                </ul>
-                <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
-            </div>
+    <!-- HEADER & SAFETY BANNER -->
+    <header class="app-header">
+        <h1>Sanctuary</h1>
+        <p class="subtitle">A safe, anonymous space to unpack your thoughts.</p>
+        <div class="crisis-banner">
+            Feeling overwhelmed? You are not alone. Text <strong>HOME</strong> to <strong>741741</strong> for free, 24/7 crisis support.
         </div>
+    </header>
 
-        <div class="highlights-section">
-            <div class="section-title">🔥 TRENDING GLOBALLY RIGHT NOW</div>
-            <div class="highlights-container" id="highlights-deck">
-                <div class="hl-card" id="initial-hl-placeholder">
-                    <div class="hl-card-body">
-                        <p class="hl-meta">System · Notice</p>
-                        <p class="hl-text">Messages crossing a 15+ fire metric scale instantly pin here.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="feed-container-wrapper">
-            <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
-                <!-- System Message -->
-                <div class="msg-bubble system-broadcast">
-                    <div class="msg-meta">🔒 SESSION INITIALIZED</div>
-                    <div class="msg-text">No logins. No tracking. You are talking directly to the open web. Drop a thought or click a handle to engage.</div>
-                </div>
-            </main>
-
-            <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
-                ↓ <span id="missed-count">0</span> new unread nodes
-            </button>
-        </div>
-
-        <footer class="chat-input-area">
-            <div class="input-container" id="input-bar-container">
-                <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
-                <button class="send-btn" id="send-btn" onclick="sendUserMessage()">
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </button>
-            </div>
-            <div id="cooldown-timer" class="cooldown-text hidden">Cooldown active: <span id="seconds-left">60</span>s</div>
-        </footer>
-    </div>
-
-    <script>
-        // --- LOCAL CONFIGURATION & STATE ---
-        if (!localStorage.getItem('anon_user_tag')) {
-            localStorage.setItem('anon_user_tag', Math.floor(1000 + Math.random() * 9000));
-        }
-        const myUserHandle = `Anon#` + localStorage.getItem('anon_user_tag');
-
-        const chatStream = document.getElementById('chat-stream');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const cooldownTimer = document.getElementById('cooldown-timer');
-        const secondsLeftSpan = document.getElementById('seconds-left');
-        const inputContainer = document.getElementById('input-bar-container');
-        const onlineCounter = document.getElementById('online-counter');
-        const streamLockBadge = document.getElementById('stream-lock-badge');
-        const missedCountSpan = document.getElementById('missed-count');
-        const highlightsDeck = document.getElementById('highlights-deck');
-
-        let isFrozen = false;
-        let missedMessagesCount = 0;
-        let activeReplyTarget = null;
+    <!-- MAIN APPLICATION AREA -->
+    <main class="app-container">
         
-        let clientVoteRegistry = JSON.parse(localStorage.getItem('registry_votes_pool')) || {};
+        <!-- THE POSTING FORM -->
+        <section class="post-box">
+            <textarea id="vent-input" placeholder="What's weighing on your mind? (Keep it anonymous...)"></textarea>
+            <div class="action-row">
+                <button id="submit-btn" onclick="createNewPost()">Release into the void</button>
+            </div>
+        </section>
 
-        // --- GLOBAL INTERNET SIMULATION DATA POOL ---
-        const simulationPool = [
-            "Does anyone else feel like the internet was way more fun back in 2012?",
-            "Shoutout to everyone currently pretending to work right now while reading this.",
-            "Pineapple on pizza is a culinary masterpiece and I am completely done pretending it isn't.",
-            "What's a minor inconvenience that completely ruins your entire day?",
-            "Currently listening to a single song on repeat until I completely destroy the dopamine it gives me.",
-            "Imagine if your sleep schedule matched your actual real-life goals.",
-            "It’s 3 AM somewhere and someone is definitely arguing with an advanced AI bot on the internet.",
-            "We live in a world where your phone knows your attention span better than your closest friends do.",
-            "Hot take: Typing 'on my way' while still putting your socks on is a universal human right.",
-            "What is the most useless piece of random trivia taking up space in your head right now?",
-            "The real metric of wealth is being able to sleep past 8 AM on a Tuesday without feeling guilty.",
-            "Sometimes I look at old arcade designs and realize we completely lost our aesthetic way somewhere.",
-            "Can we agree that reading a physical book hits completely different than staring at a screen all day?",
-            "Every person you pass on the street is living a life as vivid and complex as your own. Wild to think about.",
-            "Deleting social media profiles is the modern equivalent of moving to a completely new city."
-        ];
+        <!-- THE FEED -->
+        <section id="feed-container">
+            <!-- Default placeholder post -->
+            <div class="vent-card">
+                <span class="user-tag">@AnonymousOwl</span>
+                <p class="vent-text">Sometimes the quietest rooms are the loudest ones in my head. Just needed to type this out.</p>
+                <div class="card-footer">Shared 2 minutes ago</div>
+            </div>
+        </section>
 
-        // --- SECURITY UTILITY ---
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
+    </main>
 
-        window.addEventListener('DOMContentLoaded', () => {
-            startLocalSimulationEngine();
-            trackLiveOnlineMetrics();
-        });
-
-        function toggleRules() {
-            document.getElementById('rules-overlay').classList.toggle('hidden');
-        }
-
-        function handleStreamScroll() {
-            const distanceFromBottom = chatStream.scrollHeight - chatStream.scrollTop - chatStream.clientHeight;
-            if (distanceFromBottom > 100) {
-                isFrozen = true;
-            } else {
-                isFrozen = false;
-                missedMessagesCount = 0;
-                streamLockBadge.classList.add('hidden');
-            }
-        }
-
-        function snapToBottom() {
-            isFrozen = false;
-            missedMessagesCount = 0;
-            streamLockBadge.classList.add('hidden');
-            chatStream.scrollTop = chatStream.scrollHeight;
-        }
-
-        function setReplyTarget(username) {
-            activeReplyTarget = username;
-            userInput.placeholder = `Replying to ${username}...`;
-            userInput.focus();
-        }
-
-        // --- COMPONENT RENDERING ENGINE ---
-        function renderIncomingMessageBubble(msgRow) {
-            const isMe = msgRow.sender === myUserHandle;
-            const uniqueNodeID = `msg-${msgRow.id}`;
+    <!-- INTERACTION SCRIPT -->
+    <script>
+        function createNewPost() {
+            const textInput = document.getElementById('vent-input');
+            const text = textInput.value.trim();
             
-            if (document.getElementById(uniqueNodeID)) return;
+            if(!text) return;
 
-            const bubble = document.createElement('div');
-            bubble.className = `msg-bubble ${isMe ? 'user-msg' : ''}`;
-            bubble.id = uniqueNodeID;
-            
-            const activeVote = clientVoteRegistry[msgRow.id];
-            const hasFired = activeVote === 'fire';
-            const hasIced = activeVote === 'ice';
+            // Generate a random anonymous username
+            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter'];
+            const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+            const username = `@Anonymous${randomAnimal}`;
 
-            bubble.innerHTML = `
-                <div class="msg-meta" onclick="setReplyTarget('${escapeHTML(msgRow.sender)}')">
-                    ${escapeHTML(msgRow.sender)} ${isMe ? '(You)' : '· Reply'}
-                </div>
-                <div class="msg-text">${msgRow.content}</div>
-                <div class="msg-reactions">
-                    <button class="react-btn ${hasFired ? 'voted-fire' : ''}" ${activeVote ? 'disabled' : ''} onclick="processVoteMetric(${msgRow.id}, 'fire', this)">
-                        🔥 <span class="count">${msgRow.fire_score || 0}</span>
-                    </button>
-                    <button class="react-btn ${hasIced ? 'voted-ice' : ''}" ${activeVote ? 'disabled' : ''} onclick="processVoteMetric(${msgRow.id}, 'ice', this)">
-                        🥶 <span class="count">${msgRow.ice_score || 0}</span>
-                    </button>
-                </div>
+            // Create the HTML structure for the new post
+            const newPost = document.createElement('div');
+            newPost.className = 'vent-card new-post-animation';
+            newPost.innerHTML = `
+                <span class="user-tag">${username}</span>
+                <p class="vent-text">${text}</p>
+                <div class="card-footer">Shared just now</div>
             `;
 
-            chatStream.appendChild(bubble);
-
-            if (isFrozen && !isMe) {
-                missedMessagesCount++;
-                missedCountSpan.innerText = missedMessagesCount;
-                streamLockBadge.classList.remove('hidden');
-            } else {
-                snapToBottom();
-            }
-
-            if (msgRow.fire_score >= 15) pushMessageToHighlightDeck(msgRow);
-        }
-
-        function sendUserMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            const escapedText = escapeHTML(text);
-            
-            let processedMessage = escapedText;
-            if (activeReplyTarget) {
-                processedMessage = `<span class="reply-tag">@${escapeHTML(activeReplyTarget)}</span>${escapedText}`;
-            }
-            
-            userInput.value = '';
-            userInput.placeholder = "Say something worth keeping...";
-            activeReplyTarget = null;
-            triggerCooldown();
-
-            renderIncomingMessageBubble({ 
-                id: Date.now(), 
-                sender: myUserHandle, 
-                content: processedMessage, 
-                fire_score: 0,
-                ice_score: 0
-            });
-        }
-
-        function processVoteMetric(messageID, type, selectedBtn) {
-            if (clientVoteRegistry[messageID]) return;
-
-            clientVoteRegistry[messageID] = type;
-            localStorage.setItem('registry_votes_pool', JSON.stringify(clientVoteRegistry));
-
-            const parentBlock = selectedBtn.parentElement;
-            const targetFireBtn = parentBlock.children[0];
-            const targetIceBtn = parentBlock.children[1];
-
-            targetFireBtn.disabled = true;
-            targetIceBtn.disabled = true;
-
-            const counterSpan = selectedBtn.querySelector('.count');
-            const calculatedIncrement = parseInt(counterSpan.innerText) + 1;
-            counterSpan.innerText = calculatedIncrement;
-
-            if (type === 'fire') {
-                selectedBtn.classList.add('voted-fire');
-                
-                if (calculatedIncrement >= 15) {
-                    const trackingRow = document.getElementById(`msg-${messageID}`);
-                    const extractionHandle = trackingRow.querySelector('.msg-meta').innerText.split(' ')[0];
-                    const contentMarkup = trackingRow.querySelector('.msg-text').innerHTML;
-                    
-                    pushMessageToHighlightDeck({ 
-                        id: messageID, 
-                        sender: extractionHandle, 
-                        content: contentMarkup, 
-                        fire_score: calculatedIncrement 
-                    });
-                }
-            } else {
-                selectedBtn.classList.add('voted-ice');
-            }
-        }
-
-        function pushMessageToHighlightDeck(msgRow) {
-            const placeholder = document.getElementById('initial-hl-placeholder');
-            if (placeholder) placeholder.remove();
-
-            const targetCardID = `hl-${msgRow.id}`;
-            let existing = document.getElementById(targetCardID);
-
-            if (existing) {
-                existing.querySelector('.hl-meta').innerText = `${escapeHTML(msgRow.sender)} · ${msgRow.fire_score} 🔥`;
-                return;
-            }
-
-            const card = document.createElement('div');
-            card.className = 'hl-card';
-            card.id = targetCardID;
-            card.innerHTML = `
-                <div class="hl-card-body">
-                    <p class="hl-meta">${escapeHTML(msgRow.sender)} · ${msgRow.fire_score} 🔥</p>
-                    <p class="hl-text">${msgRow.content.replace(/<[^>]*>/g, '')}</p>
-                </div>
-                <button class="hl-share-btn" onclick="generateShareCard('${targetCardID}')">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-                </button>
-            `;
-
-            highlightsDeck.insertBefore(card, highlightsDeck.firstChild);
-        }
-
-        function triggerCooldown() {
-            userInput.disabled = true;
-            sendBtn.disabled = true;
-            inputContainer.classList.add('disabled-state');
-            cooldownTimer.classList.remove('hidden');
-            
-            let timeLeft = 60;
-            secondsLeftSpan.innerText = timeLeft;
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                secondsLeftSpan.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    userInput.disabled = false;
-                    sendBtn.disabled = false;
-                    inputContainer.classList.remove('disabled-state');
-                    cooldownTimer.classList.add('hidden');
-                }
-            }, 1000);
-        }
-
-        function handleKeyPress(e) { if (e.key === 'Enter') sendUserMessage(); }
-
-        function generateShareCard(elementId) {
-            const card = document.getElementById(elementId);
-            const shareBtn = card.querySelector('.hl-share-btn');
-            if (shareBtn) shareBtn.style.visibility = 'hidden';
-
-            html2canvas(card, { backgroundColor: "#141722", scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `viral_thought.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-                if (shareBtn) shareBtn.style.visibility = 'visible';
-            });
-        }
-
-        function trackLiveOnlineMetrics() {
-            setInterval(() => {
-                let current = parseInt(onlineCounter.innerText.replace(/,/g, ''));
-                onlineCounter.innerText = (current + Math.floor(Math.random() * 24 - 12)).toLocaleString() + " nodes connected";
-            }, 5000);
-        }
-
-        function startLocalSimulationEngine() {
-            // Seed early baseline historical entries with varying global trends
-            for(let i = 0; i < 5; i++) {
-                renderIncomingMessageBubble({
-                    id: Math.floor(Math.random() * 100000),
-                    sender: `Anon#${Math.floor(1000 + Math.random() * 9000)}`,
-                    content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
-                    fire_score: Math.floor(Math.random() * 18),
-                    ice_score: Math.floor(Math.random() * 6)
-                });
-            }
-
-            // Continuous ingest interval tracking loop
-            setInterval(() => {
-                const generatedMock = {
-                    id: Math.floor(Math.random() * 1000000),
-                    sender: `Anon#${Math.floor(1000 + Math.random() * 9000)}`,
-                    content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
-                    fire_score: Math.floor(Math.random() * 5),
-                    ice_score: Math.floor(Math.random() * 3)
-                };
-                renderIncomingMessageBubble(generatedMock);
-            }, 5000);
+            // Push it to the top of the feed and clear the text box
+            const feed = document.getElementById('feed-container');
+            feed.insertBefore(newPost, feed.firstChild);
+            textInput.value = '';
         }
     </script>
 </body>
