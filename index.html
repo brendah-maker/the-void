@@ -93,12 +93,15 @@
         .system-broadcast { align-self: center; background: var(--system-msg); text-align: center; border: none; }
 
         .msg-meta { font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; cursor: pointer; }
+        .msg-meta:hover { color: var(--accent-color); }
         .msg-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); word-break: break-word; }
-        .reply-tag { color: var(--accent-color); font-weight: 600; }
+        .reply-tag { color: var(--accent-color); font-weight: 600; display: inline-block; margin-right: 4px; }
 
         .msg-reactions { margin-top: 8px; display: flex; gap: 8px; }
-        .react-btn { background: #0c0e14; border: 1px solid var(--border-color); color: white; padding: 4px 8px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
-        .react-btn.voted { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+        .react-btn { background: #0c0e14; border: 1px solid var(--border-color); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
+        .react-btn.voted-fire { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+        .react-btn.voted-ice { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .react-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* Badge for new messages */
         .stream-badge {
@@ -152,8 +155,9 @@
                 <h3>The Code of Conduct</h3>
                 <ul>
                     <li>✨ Complete anonymity. No logs, no profiles.</li>
+                    <li>💬 Click any handle label to instantly reply.</li>
                     <li>⏳ Posting triggers a 60s typing cooldown.</li>
-                    <li>🔥 Viral thoughts (15+ reactions) hit the top deck.</li>
+                    <li>🔥 Upvote with Fire. Freeze uncool context with Ice.</li>
                 </ul>
                 <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
             </div>
@@ -165,7 +169,7 @@
                 <div class="hl-card" id="initial-hl-placeholder">
                     <div class="hl-card-body">
                         <p class="hl-meta">System · Notice</p>
-                        <p class="hl-text">Messages with 15+ reactions appear here.</p>
+                        <p class="hl-text">Messages with 15+ fire ratings appear here.</p>
                     </div>
                 </div>
             </div>
@@ -176,7 +180,7 @@
                 <!-- System Message -->
                 <div class="msg-bubble system-broadcast">
                     <div class="msg-meta">🔒 SECURITY NOTICE</div>
-                    <div class="msg-text">Welcome. Your handle is randomized every session. Stay respectful.</div>
+                    <div class="msg-text">Welcome. Your handle is randomized every session. Click any sender metadata row to trigger text reply loops.</div>
                 </div>
             </main>
 
@@ -201,7 +205,7 @@
         if (!localStorage.getItem('anon_user_tag')) {
             localStorage.setItem('anon_user_tag', Math.floor(1000 + Math.random() * 9000));
         }
-        const myUserHandle = `Anon #` + localStorage.getItem('anon_user_tag');
+        const myUserHandle = `Anon#` + localStorage.getItem('anon_user_tag');
 
         const chatStream = document.getElementById('chat-stream');
         const userInput = document.getElementById('user-input');
@@ -217,9 +221,10 @@
         let isFrozen = false;
         let missedMessagesCount = 0;
         let activeReplyTarget = null;
-        let localVotedMessageIDs = JSON.parse(localStorage.getItem('voted_pool')) || [];
+        
+        // Track votes structurally via key-value pairings: { messageID: 'fire' | 'ice' }
+        let clientVoteRegistry = JSON.parse(localStorage.getItem('registry_votes_pool')) || {};
 
-        // --- SIMULATION POOL DATA (Pre-defined chat behaviors) ---
         const simulationPool = [
             "Hot take: Dark mode should be the default across every single framework.",
             "Can we talk about how fast building interfaces with semantic custom variables actually is?",
@@ -239,7 +244,6 @@
             );
         }
 
-        // --- APP INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
             startLocalSimulationEngine();
             trackLiveOnlineMetrics();
@@ -267,13 +271,14 @@
             chatStream.scrollTop = chatStream.scrollHeight;
         }
 
+        // --- TRIGGER REPLY SYNTAX TARGET ---
         function setReplyTarget(username) {
             activeReplyTarget = username;
             userInput.placeholder = `Replying to ${username}...`;
             userInput.focus();
         }
 
-        // --- SIMULATED DATA INGESTION ENGINE ---
+        // --- RENDER COMPONENT LOGIC ---
         function renderIncomingMessageBubble(msgRow) {
             const isMe = msgRow.sender === myUserHandle;
             const uniqueNodeID = `msg-${msgRow.id}`;
@@ -284,7 +289,10 @@
             bubble.className = `msg-bubble ${isMe ? 'user-msg' : ''}`;
             bubble.id = uniqueNodeID;
             
-            const hasVotedThis = localVotedMessageIDs.includes(msgRow.id);
+            // Check past structural storage arrays to isolate voter states
+            const activeVote = clientVoteRegistry[msgRow.id];
+            const hasFired = activeVote === 'fire';
+            const hasIced = activeVote === 'ice';
 
             bubble.innerHTML = `
                 <div class="msg-meta" onclick="setReplyTarget('${escapeHTML(msgRow.sender)}')">
@@ -292,8 +300,11 @@
                 </div>
                 <div class="msg-text">${msgRow.content}</div>
                 <div class="msg-reactions">
-                    <button class="react-btn ${hasVotedThis ? 'voted' : ''}" onclick="processReactionVote(${msgRow.id}, this)">
+                    <button class="react-btn ${hasFired ? 'voted-fire' : ''}" ${activeVote ? 'disabled' : ''} onclick="processVoteMetric(${msgRow.id}, 'fire', this)">
                         🔥 <span class="count">${msgRow.fire_score || 0}</span>
+                    </button>
+                    <button class="react-btn ${hasIced ? 'voted-ice' : ''}" ${activeVote ? 'disabled' : ''} onclick="processVoteMetric(${msgRow.id}, 'ice', this)">
+                        🥶 <span class="count">${msgRow.ice_score || 0}</span>
                     </button>
                 </div>
             `;
@@ -316,42 +327,66 @@
             if (!text) return;
 
             const escapedText = escapeHTML(text);
-            const finalContent = activeReplyTarget 
-                ? `<span class="reply-tag">@${escapeHTML(activeReplyTarget)}</span> ${escapedText}` 
-                : escapedText;
+            
+            // Build proper semantic rendering nodes
+            let processedMessage = escapedText;
+            if (activeReplyTarget) {
+                processedMessage = `<span class="reply-tag">@${escapeHTML(activeReplyTarget)}</span>${escapedText}`;
+            }
             
             userInput.value = '';
             userInput.placeholder = "Say something worth keeping...";
             activeReplyTarget = null;
             triggerCooldown();
 
-            // Direct local push
             renderIncomingMessageBubble({ 
                 id: Date.now(), 
                 sender: myUserHandle, 
-                content: finalContent, 
-                fire_score: 0 
+                content: processedMessage, 
+                fire_score: 0,
+                ice_score: 0
             });
         }
 
-        function processReactionVote(messageID, btn) {
-            if (btn.classList.contains('voted')) return;
+        // --- TWO-REACTION ENGINE HANDLING ---
+        function processVoteMetric(messageID, type, selectedBtn) {
+            if (clientVoteRegistry[messageID]) return; // Block double votes natively
 
-            btn.classList.add('voted');
-            localVotedMessageIDs.push(messageID);
-            localStorage.setItem('voted_pool', JSON.stringify(localVotedMessageIDs));
+            // Update registration state indexes
+            clientVoteRegistry[messageID] = type;
+            localStorage.setItem('registry_votes_pool', JSON.stringify(clientVoteRegistry));
 
-            const countSpan = btn.querySelector('.count');
-            const updatedScore = parseInt(countSpan.innerText) + 1;
-            countSpan.innerText = updatedScore;
+            // Instant UI modifications
+            const parentBlock = selectedBtn.parentElement;
+            const targetFireBtn = parentBlock.children[0];
+            const targetIceBtn = parentBlock.children[1];
 
-            // Mirror validation up to highlights dynamically if criteria met
-            const targetMeta = document.getElementById(`msg-${messageID}`);
-            const senderName = targetMeta.querySelector('.msg-meta').innerText.split(' ')[0];
-            const contentText = targetMeta.querySelector('.msg-text').innerHTML;
+            // Disable row inputs cleanly
+            targetFireBtn.disabled = true;
+            targetIceBtn.disabled = true;
 
-            if (updatedScore >= 15) {
-                pushMessageToHighlightDeck({ id: messageID, sender: senderName, content: contentText, fire_score: updatedScore });
+            const counterSpan = selectedBtn.querySelector('.count');
+            const calculatedIncrement = parseInt(counterSpan.innerText) + 1;
+            counterSpan.innerText = calculatedIncrement;
+
+            if (type === 'fire') {
+                selectedBtn.classList.add('voted-fire');
+                
+                // Track if it meets trending selection metrics
+                if (calculatedIncrement >= 15) {
+                    const trackingRow = document.getElementById(`msg-${messageID}`);
+                    const extractionHandle = trackingRow.querySelector('.msg-meta').innerText.split(' ')[0];
+                    const contentMarkup = trackingRow.querySelector('.msg-text').innerHTML;
+                    
+                    pushMessageToHighlightDeck({ 
+                        id: messageID, 
+                        sender: extractionHandle, 
+                        content: contentMarkup, 
+                        fire_score: calculatedIncrement 
+                    });
+                }
+            } else {
+                selectedBtn.classList.add('voted-ice');
             }
         }
 
@@ -429,23 +464,25 @@
         }
 
         function startLocalSimulationEngine() {
-            // Seed a few initial historical simulation messages to fill empty state
+            // Seed early baseline simulation content array maps
             for(let i = 0; i < 4; i++) {
                 renderIncomingMessageBubble({
                     id: Math.floor(Math.random() * 100000),
-                    sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`,
+                    sender: `Anon#${Math.floor(1000 + Math.random() * 9000)}`,
                     content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
-                    fire_score: Math.floor(Math.random() * 18) // Some might instantly populate trending bar!
+                    fire_score: Math.floor(Math.random() * 18),
+                    ice_score: Math.floor(Math.random() * 8)
                 });
             }
 
-            // Continuously push new user responses over interval
+            // Continuous ingest interval tracking loop
             setInterval(() => {
                 const generatedMock = {
                     id: Math.floor(Math.random() * 1000000),
-                    sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`,
+                    sender: `Anon#${Math.floor(1000 + Math.random() * 9000)}`,
                     content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
-                    fire_score: Math.floor(Math.random() * 6)
+                    fire_score: Math.floor(Math.random() * 6),
+                    ice_score: Math.floor(Math.random() * 4)
                 };
                 renderIncomingMessageBubble(generatedMock);
             }, 6000);
