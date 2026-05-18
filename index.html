@@ -19,19 +19,21 @@
 
     <main class="app-container">
         <section class="post-box">
-            <textarea id="vent-input" placeholder="What's weighing on your mind?"></textarea>
+            <textarea id="vent-input" placeholder="What's weighing on your mind? (Keep it anonymous...)"></textarea>
             <div class="action-row">
                 <button id="submit-btn" onclick="createNewPost()">Release into the void</button>
             </div>
         </section>
 
-        <section id="feed-container"></section>
+        <section id="feed-container">
+            </section>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Your verified Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
             authDomain: "sanctuary-9859d.firebaseapp.com",
@@ -46,6 +48,7 @@
         const db = getFirestore(app);
         const postsRef = collection(db, "vents");
 
+        // Identity Persistence
         function getMyIdentity() {
             let myName = localStorage.getItem('sanctuary_user');
             if (!myName) {
@@ -85,6 +88,7 @@
             if(!emojiText) input.value = '';
         };
 
+        // Listen for new posts
         const q = query(postsRef, orderBy("timestamp", "desc"), limit(50));
         onSnapshot(q, (snapshot) => {
             const feed = document.getElementById('feed-container');
@@ -125,7 +129,7 @@
                         `).join('')}
                     </div>
                     <div class="reply-input-area">
-                        <input type="text" id="input-${id}" class="reply-field" placeholder="Reply...">
+                        <input type="text" id="input-${id}" class="reply-field" placeholder="Reply anonymously...">
                         <button class="reply-submit" onclick="addReply('${id}')">Send</button>
                     </div>
                 </div>
