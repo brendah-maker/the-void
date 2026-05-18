@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Global GC | Live</title>
+    <title>The Global GC | Chill Mode</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,76 +19,59 @@
                 <h2>THE GLOBAL GC</h2>
                 <p><span class="online-pulse"></span> <span id="online-counter">14,892</span> online</p>
             </div>
-            <div class="header-actions">
-                <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
-            </div>
+            <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
         </header>
 
-        <!-- Rules Overlay Modal (Hidden by Default) -->
+        <!-- Rules Modal -->
         <div id="rules-overlay" class="rules-modal hidden">
             <div class="rules-content">
                 <h3>The Code of Conduct</h3>
                 <ul>
-                    <li> Everyone is anonymous. No profiles, no traces.</li>
-                    <li> Posting triggers a <strong>60-second typing cooldown</strong>. Make it count.</li>
-                    <li> If your post gets <strong>50 Mutes (🤫)</strong>, it shatters and you get a 10-minute ban.</li>
+                    <li>Complete anonymity. No logs, no profiles.</li>
+                    <li>Posting triggers a 60s typing cooldown.</li>
+                    <li>If you scroll up, the stream freezes so you can read at your own pace.</li>
                 </ul>
                 <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
             </div>
         </div>
 
-        <!-- Pinned Banner Topic -->
-        <div class="pinned-banner">
-            <span class="pin-icon">📌</span>
-            <div class="pinned-text">
-                <p class="pin-meta">PINNED BY GLOBAL VOTE (1.2k 🔥)</p>
-                <p class="pin-content" id="pinned-msg">"My roommate just asked if he could borrow my toothbrush 'for an emergency' and absolutely refuses to elaborate."</p>
+        <!-- NEW: Curation Highlights Deck (Horizontal Slow Lane) -->
+        <div class="highlights-section">
+            <div class="section-title">🔥 TRENDING IN THE LAST 10M</div>
+            <div class="highlights-container" id="highlights-deck">
+                <!-- Highlight 1 -->
+                <div class="hl-card">
+                    <p class="hl-meta">Anon #4920 · 241 🔥</p>
+                    <p class="hl-text">Staring at a leak under my kitchen sink pretending I know what a wrench does.</p>
+                </div>
+                <!-- Highlight 2 -->
+                <div class="hl-card">
+                    <p class="hl-meta">Anon #8831 · 512 🔥</p>
+                    <p class="hl-text">The pure panic when you send a screenshot complaining about someone TO that exact person.</p>
+                </div>
             </div>
         </div>
 
-        <!-- Live Message Feed -->
-        <main class="message-stream" id="chat-stream">
-
-            <div class="msg-bubble">
-                <div class="msg-meta">Anon #4920</div>
-                <div class="msg-text">
-                    Anyone else just completely faking their way through adulthood? I'm currently staring at a leak under my kitchen sink pretending I know what a wrench does.
+        <!-- Live Message Feed Block -->
+        <div class="feed-container-wrapper">
+            <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
+                <div class="msg-bubble">
+                    <div class="msg-meta">Anon #3021</div>
+                    <div class="msg-text">Welcome to the void. Say something iconic or get muted by the crowd.</div>
+                    <div class="msg-reactions">
+                        <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">12</span></button>
+                        <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">1</span></button>
+                    </div>
                 </div>
-                <div class="msg-reactions">
-                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">342</span></button>
-                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">12</span></button>
-                </div>
-            </div>
+            </main>
 
-            <div class="msg-bubble warning">
-                <div class="msg-meta">Anon #1104</div>
-                <div class="msg-text">
-                    Putting pineapple on pizza isn't just a preference, it's a structural necessity for the moisture profile of the dough. Fight me.
-                </div>
-                <div class="msg-reactions">
-                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">41</span></button>
-                    <button class="react-btn mute danger" onclick="handleVote(this)">🤫 <span class="count">48/50 KICK</span></button>
-                </div>
-            </div>
+            <!-- NEW: Floating Stream Pause Alert Badge -->
+            <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
+                ↓ <span id="missed-count">0</span> new messages
+            </button>
+        </div>
 
-            <div class="system-notice">
-                💥 Anon #0392 was violently muted for 10 minutes by public vote.
-            </div>
-
-            <div class="msg-bubble">
-                <div class="msg-meta">Anon #8831</div>
-                <div class="msg-text">
-                    There is no adrenaline rush quite like accidentally sending a text complaining about someone TO that exact person. Send prayers.
-                </div>
-                <div class="msg-reactions">
-                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">891</span></button>
-                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">3</span></button>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Message Input Bar Container -->
+        <!-- Chat Input Bar Row -->
         <footer class="chat-input-area">
             <div class="input-container" id="input-bar-container">
                 <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
@@ -103,7 +86,6 @@
 
     </div>
 
-    <!-- Live Simulating Engine Script -->
     <script>
         const chatStream = document.getElementById('chat-stream');
         const userInput = document.getElementById('user-input');
@@ -112,48 +94,75 @@
         const secondsLeftSpan = document.getElementById('seconds-left');
         const inputContainer = document.getElementById('input-bar-container');
         const onlineCounter = document.getElementById('online-counter');
+        const streamLockBadge = document.getElementById('stream-lock-badge');
+        const missedCountSpan = document.getElementById('missed-count');
+        const highlightsDeck = document.getElementById('highlights-deck');
+
+        let isFrozen = false;
+        let missedMessagesCount = 0;
 
         const simulationPool = [
-            "I have an interview in 20 minutes and I accidentally spilled coffee all over my shirt. Wearing a zipped jacket and praying they don't ask me to take it off.",
-            "My neighbor plays smooth jazz at 3 AM. I can't even be mad because his taste is immaculate.",
-            "Accidentally said 'Love you bye' to my delivery driver. Currently packing my bags to move to another continent.",
-            "Hot take: Working 2 hours a day productively beats pretending to work for 8 hours. Corporate culture is a scam.",
-            "Just saw someone eat a whole lemon like an apple on the subway. No expression. Pure chaotic energy.",
-            "Is it considered stealing if I keep using my ex's Netflix account 3 years later? They haven't changed the password.",
-            "Spent my entire savings on a weekend trip because 'you only live once' and now my bank account is screaming at me."
+            "My neighbor is playing smooth jazz at 3 AM. I can't even be mad because his taste is immaculate.",
+            "Accidentally said 'Love you bye' to my Uber driver. Currently packing to leave the continent.",
+            "Hot take: Working 2 hours a day productively beats pretending to look busy for 8 hours.",
+            "Just saw someone eat a whole lemon like an apple on the bus. No expression. Pure villain energy.",
+            "Is it considered stealing if I keep using my ex's Netflix account 3 years later? Asking for a friend.",
+            "Spent my entire rent budget on concert tickets because 'YOLO' and now I'm cooking tap water for dinner."
         ];
 
-        // Scroll to the bottom of the chat view
-        function scrollToBottom() {
-            chatStream.scrollTop = chatStream.scrollHeight;
-        }
-        window.onload = scrollToBottom;
-
-        // Toggle Rules Modal View
         function toggleRules() {
             document.getElementById('rules-overlay').classList.toggle('hidden');
         }
 
-        // Handle upvote / downvote reaction clicks
+        // Monitors user scrolling to toggle "Freeze Mode"
+        function handleStreamScroll() {
+            // If the user scrolls away from the bottom by more than 40px, freeze the feed scrolling
+            const distanceFromBottom = chatStream.scrollHeight - chatStream.scrollTop - chatStream.clientHeight;
+            
+            if (distanceFromBottom > 40) {
+                isFrozen = true;
+            } else {
+                isFrozen = false;
+                missedMessagesCount = 0;
+                streamLockBadge.classList.add('hidden');
+            }
+        }
+
+        // Force snap view back to live updates
+        function snapToBottom() {
+            isFrozen = false;
+            missedMessagesCount = 0;
+            streamLockBadge.classList.add('hidden');
+            chatStream.scrollTop = chatStream.scrollHeight;
+        }
+
         function handleVote(button) {
             const countSpan = button.querySelector('.count');
             let currentCount = parseInt(countSpan.innerText);
-            
             if (!button.classList.contains('voted')) {
                 button.classList.add('voted');
-                if(button.classList.contains('danger')) {
-                    countSpan.innerText = "MUTED";
-                    setTimeout(() => {
-                        button.closest('.msg-bubble').style.animation = "shatter 0.4s ease forwards";
-                        setTimeout(() => button.closest('.msg-bubble').remove(), 400);
-                    }, 600);
-                } else {
-                    countSpan.innerText = currentCount + 1;
+                countSpan.innerText = currentCount + 1;
+
+                // Curation engine check: If highly voted, copy over to horizontal highlight deck
+                if (currentCount + 1 > 20 && !button.dataset.highlighted) {
+                    button.dataset.highlighted = true;
+                    pushToHighlights(button.closest('.msg-bubble'));
                 }
             }
         }
 
-        // Append custom user messages to the live stream view
+        function pushToHighlights(bubbleElement) {
+            const text = bubbleElement.querySelector('.msg-text').innerText;
+            const meta = bubbleElement.querySelector('.msg-meta').innerText;
+            
+            const card = document.createElement('div');
+            card.className = 'hl-card';
+            card.innerHTML = `<p class="hl-meta">${meta} · Viral 🔥</p><p class="hl-text">${text}</p>`;
+            
+            highlightsDeck.insertBefore(card, highlightsDeck.firstChild);
+            if(highlightsDeck.children.length > 5) highlightsDeck.lastChild.remove();
+        }
+
         function sendUserMessage() {
             const text = userInput.value.trim();
             if (!text) return;
@@ -172,17 +181,14 @@
             
             chatStream.appendChild(newMsg);
             userInput.value = '';
-            scrollToBottom();
+            snapToBottom();
             triggerCooldown();
         }
 
         function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendUserMessage();
-            }
+            if (event.key === 'Enter') sendUserMessage();
         }
 
-        // Handle the 60-second input freeze requirement
         function triggerCooldown() {
             userInput.disabled = true;
             sendBtn.disabled = true;
@@ -201,17 +207,15 @@
                     sendBtn.disabled = false;
                     inputContainer.classList.remove('disabled-state');
                     cooldownTimer.classList.add('hidden');
-                    userInput.placeholder = "Say something worth keeping...";
                 }
             }, 1000);
         }
 
-        // Simulate random incoming community chat streams
+        // Simulated background streaming traffic
         setInterval(() => {
             const randomMsgText = simulationPool[Math.floor(Math.random() * simulationPool.length)];
             const randomId = Math.floor(1000 + Math.random() * 9000);
-            const randomFire = Math.floor(5 + Math.random() * 200);
-            const randomMute = Math.floor(0 + Math.random() * 15);
+            const randomFire = Math.floor(2 + Math.random() * 45);
 
             const incomingMsg = document.createElement('div');
             incomingMsg.className = 'msg-bubble';
@@ -220,25 +224,31 @@
                 <div class="msg-text">${randomMsgText}</div>
                 <div class="msg-reactions">
                     <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">${randomFire}</span></button>
-                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">${randomMute}</span></button>
+                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">0</span></button>
                 </div>
             `;
 
             chatStream.appendChild(incomingMsg);
             
-            // Randomly clean up older messages to keep performance light
-            if(chatStream.children.length > 15) {
+            if (chatStream.children.length > 25) {
                 chatStream.removeChild(chatStream.firstElementChild);
             }
-            scrollToBottom();
-        }, 6000);
 
-        // Fluctuate active user counts to simulate live load activity
+            // If user has locked the stream by scrolling up, increment badge instead of auto-scrolling
+            if (isFrozen) {
+                missedMessagesCount++;
+                missedCountSpan.innerText = missedMessagesCount;
+                streamLockBadge.classList.remove('hidden');
+            } else {
+                chatStream.scrollTop = chatStream.scrollHeight;
+            }
+        }, 3000); // Fast pacing to test out stream locking mechanics
+
         setInterval(() => {
             let currentCounterVal = parseInt(onlineCounter.innerText.replace(',', ''));
-            let flux = Math.floor(Math.random() * 10) - 4;
+            let flux = Math.floor(Math.random() * 8) - 3;
             onlineCounter.innerText = (currentCounterVal + flux).toLocaleString();
-        }, 3500);
+        }, 4000);
     </script>
 </body>
 </html>
