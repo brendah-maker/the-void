@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanctuary | Anonymous Vent Feed</title>
+    <title>Sanctuary | Release Your Thoughts</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,36 +19,33 @@
     <main class="app-container">
         
         <section class="post-box">
-            <textarea id="vent-input" placeholder="What's weighing on your mind? (Keep it anonymous...)"></textarea>
+            <textarea id="vent-input" placeholder="What's weighing on your mind?"></textarea>
             <div class="action-row">
                 <button id="submit-btn" onclick="createNewPost()">Release into the void</button>
             </div>
         </section>
 
         <section id="feed-container">
-            <div class="vent-card" id="post-1">
-                <span class="user-tag">@AnonymousOwl</span>
-                <p class="vent-text">Sometimes the quietest rooms are the loudest ones in my head. Just needed to type this out.</p>
-                <div class="card-footer">Shared 2 minutes ago</div>
-                
-                <button class="reply-btn" onclick="toggleReply('1')">Join Conversation</button>
-                <div id="replies-1" class="replies-container" style="display:none;">
-                    <div id="list-1"></div>
-                    <button id="more-1" class="read-more-btn" style="display:none;" onclick="expandReplies('1')">View more replies...</button>
-                    <div class="reply-input-area">
-                        <input type="text" id="input-1" class="reply-field" placeholder="Reply anonymously...">
-                        <button class="reply-submit" onclick="addReply('1')">Reply</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
 
     </main>
 
     <script>
-        function getRandomName() {
-            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
-            return `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
+        // 1. IDENTITY LOGIC: Check if user already has a name stored in their browser
+        function getMyIdentity() {
+            let myName = localStorage.getItem('sanctuary_user');
+            if (!myName) {
+                const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
+                myName = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
+                localStorage.setItem('sanctuary_user', myName);
+            }
+            return myName;
+        }
+
+        // 2. TIME LOGIC: Formats the current date and time
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' • ' + now.toLocaleDateString();
         }
 
         function createNewPost() {
@@ -57,15 +54,20 @@
             if(!text) return;
 
             const postId = Date.now();
-            const username = getRandomName();
+            const username = getMyIdentity(); // Uses the same name every time
+            const timestamp = getCurrentTime();
 
             const newPost = document.createElement('div');
             newPost.className = 'vent-card new-post-animation';
             newPost.innerHTML = `
                 <span class="user-tag">${username}</span>
                 <p class="vent-text">${text}</p>
-                <div class="card-footer">Shared just now</div>
-                <button class="reply-btn" onclick="toggleReply('${postId}')">Join Conversation</button>
+                <div class="card-footer">Shared at ${timestamp}</div>
+                
+                <div class="card-actions">
+                    <button class="reply-btn" onclick="toggleReply('${postId}')">Join Conversation</button>
+                </div>
+
                 <div id="replies-${postId}" class="replies-container" style="display:none;">
                     <div id="list-${postId}"></div>
                     <button id="more-${postId}" class="read-more-btn" style="display:none;" onclick="expandReplies('${postId}')">View more replies...</button>
@@ -92,19 +94,26 @@
             const text = input.value.trim();
             if(!text) return;
 
-            const replyName = getRandomName();
+            const replyName = getMyIdentity(); // Uses the same stored identity
+            const replyTime = getCurrentTime();
+            
             const replyDiv = document.createElement('div');
             replyDiv.className = 'reply-item';
-            replyDiv.innerHTML = `<span class="reply-user">${replyName}</span> ${text}`;
+            replyDiv.innerHTML = `
+                <div class="reply-header">
+                    <span class="reply-user">${replyName}</span>
+                    <span class="reply-time">${replyTime}</span>
+                </div>
+                <div class="reply-body">${text}</div>
+            `;
             
             list.appendChild(replyDiv);
             input.value = '';
 
-            // Check if we need to show the "Read More" button
             const replies = list.getElementsByClassName('reply-item');
             if (replies.length > 5) {
                 for (let i = 0; i < replies.length - 5; i++) {
-                    replies[i].style.display = 'none'; // Hide older replies
+                    replies[i].style.display = 'none';
                 }
                 document.getElementById(`more-${postId}`).style.display = 'block';
             }
@@ -114,7 +123,7 @@
             const list = document.getElementById(`list-${postId}`);
             const replies = list.getElementsByClassName('reply-item');
             for (let i = 0; i < replies.length; i++) {
-                replies[i].style.display = 'block'; // Show all
+                replies[i].style.display = 'block';
             }
             document.getElementById(`more-${postId}`).style.display = 'none';
         }
