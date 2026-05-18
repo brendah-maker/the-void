@@ -145,7 +145,7 @@
         <header class="chat-header">
             <div class="header-info">
                 <h2>THE GLOBAL GC</h2>
-                <p><span class="online-pulse"></span> <span id="online-counter">12,402 online</span></p>
+                <p><span class="online-pulse"></span> <span id="online-counter">42,890 active in KE</span></p>
             </div>
             <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
         </header>
@@ -164,7 +164,7 @@
         </div>
 
         <div class="highlights-section">
-            <div class="section-title">🔥 TRENDING IN THE LAST 10M</div>
+            <div class="section-title">🔥 TRENDING IN NAIROBI FEED</div>
             <div class="highlights-container" id="highlights-deck">
                 <div class="hl-card" id="initial-hl-placeholder">
                     <div class="hl-card-body">
@@ -179,19 +179,19 @@
             <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
                 <!-- System Message -->
                 <div class="msg-bubble system-broadcast">
-                    <div class="msg-meta">🔒 SECURITY NOTICE</div>
-                    <div class="msg-text">Welcome. Your handle is randomized every session. Click any sender metadata row to trigger text reply loops.</div>
+                    <div class="msg-meta">🔒 LIVE MONITOR</div>
+                    <div class="msg-text">Nairobi Transport Sector Fuel Strike updates. Standard session tags are assigned. Click handles to drop replies.</div>
                 </div>
             </main>
 
             <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
-                ↓ <span id="missed-count">0</span> new messages
+                ↓ <span id="missed-count">0</span> new updates
             </button>
         </div>
 
         <footer class="chat-input-area">
             <div class="input-container" id="input-bar-container">
-                <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
+                <input type="text" id="user-input" placeholder="Share a ground update from your route..." maxlength="280" onkeypress="handleKeyPress(event)">
                 <button class="send-btn" id="send-btn" onclick="sendUserMessage()">
                     <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                 </button>
@@ -222,19 +222,22 @@
         let missedMessagesCount = 0;
         let activeReplyTarget = null;
         
-        // Track votes structurally via key-value pairings: { messageID: 'fire' | 'ice' }
         let clientVoteRegistry = JSON.parse(localStorage.getItem('registry_votes_pool')) || {};
 
+        // --- REALISTIC KENYAN TRANSPORT STRIKE DATA POOL (MAY 18, 2026) ---
         const simulationPool = [
-            "Hot take: Dark mode should be the default across every single framework.",
-            "Can we talk about how fast building interfaces with semantic custom variables actually is?",
-            "Just shipped a feature and it didn't break production context. Today is a massive win.",
-            "Honestly, sometimes a pure client-side architecture is all you actually need.",
-            "Is anyone else experiencing weird touch event delays on mobile layouts?",
-            "Clean layout structures are so satisfying to scroll through.",
-            "Currently refactoring bad nested styling loops. Send help.",
-            "Anonymity changes the entire dynamic of how open online groups talk.",
-            "Never skip testing your media breakpoints early in development."
+            "Super Metro completely grounding all their operations today is wild. Stage ya CBD is ghost town.",
+            "Nairobi is a literal walking nation this morning. People trekking from Mwiki and Kawangware all the way to CBD.",
+            "Wueh! Sh 200 from Wanye to town instead of Sh 60? Inafaa kuwa criminal.",
+            "Avoid Thika Road around Kihunguro and Ruiru bypass completely, police are clashing with protesters trying to block roads.",
+            "How is Diesel increasing by Ksh 46.29 overnight but our salaries stay exactly the same? EPRA is pushing people to the wall.",
+            "Even day scholars were told to stay home. St Ann Junior School and others suspended classes manually today.",
+            "Boda bodas are trying to cash in but protesters are stopping them from carrying passengers along Jogoo Road.",
+            "Waiyaki Way is totally jammed near the Shell station. Empty matatus parked all over the place.",
+            "Treasury CS John Mbadi saying he'll have urgent talks with the President to lower pump prices... let's see if it yields anything.",
+            "Paying Sh 150 from Kibera to CBD when it's normally Sh 50. Total survival mode right now.",
+            "The Transport Sector Alliance really pulled off a 99% success rate on this shutdown. Zero public transport moving.",
+            "Digital taxis also joined the strike. Cab fares are structural madness right now, surge is up 3x."
         ];
 
         // --- SECURITY UTILITY ---
@@ -271,14 +274,13 @@
             chatStream.scrollTop = chatStream.scrollHeight;
         }
 
-        // --- TRIGGER REPLY SYNTAX TARGET ---
         function setReplyTarget(username) {
             activeReplyTarget = username;
             userInput.placeholder = `Replying to ${username}...`;
             userInput.focus();
         }
 
-        // --- RENDER COMPONENT LOGIC ---
+        // --- COMPONENT RENDERING ENGINE ---
         function renderIncomingMessageBubble(msgRow) {
             const isMe = msgRow.sender === myUserHandle;
             const uniqueNodeID = `msg-${msgRow.id}`;
@@ -289,7 +291,6 @@
             bubble.className = `msg-bubble ${isMe ? 'user-msg' : ''}`;
             bubble.id = uniqueNodeID;
             
-            // Check past structural storage arrays to isolate voter states
             const activeVote = clientVoteRegistry[msgRow.id];
             const hasFired = activeVote === 'fire';
             const hasIced = activeVote === 'ice';
@@ -328,14 +329,13 @@
 
             const escapedText = escapeHTML(text);
             
-            // Build proper semantic rendering nodes
             let processedMessage = escapedText;
             if (activeReplyTarget) {
                 processedMessage = `<span class="reply-tag">@${escapeHTML(activeReplyTarget)}</span>${escapedText}`;
             }
             
             userInput.value = '';
-            userInput.placeholder = "Say something worth keeping...";
+            userInput.placeholder = "Share a ground update from your route...";
             activeReplyTarget = null;
             triggerCooldown();
 
@@ -348,20 +348,16 @@
             });
         }
 
-        // --- TWO-REACTION ENGINE HANDLING ---
         function processVoteMetric(messageID, type, selectedBtn) {
-            if (clientVoteRegistry[messageID]) return; // Block double votes natively
+            if (clientVoteRegistry[messageID]) return;
 
-            // Update registration state indexes
             clientVoteRegistry[messageID] = type;
             localStorage.setItem('registry_votes_pool', JSON.stringify(clientVoteRegistry));
 
-            // Instant UI modifications
             const parentBlock = selectedBtn.parentElement;
             const targetFireBtn = parentBlock.children[0];
             const targetIceBtn = parentBlock.children[1];
 
-            // Disable row inputs cleanly
             targetFireBtn.disabled = true;
             targetIceBtn.disabled = true;
 
@@ -372,7 +368,6 @@
             if (type === 'fire') {
                 selectedBtn.classList.add('voted-fire');
                 
-                // Track if it meets trending selection metrics
                 if (calculatedIncrement >= 15) {
                     const trackingRow = document.getElementById(`msg-${messageID}`);
                     const extractionHandle = trackingRow.querySelector('.msg-meta').innerText.split(' ')[0];
@@ -459,19 +454,19 @@
         function trackLiveOnlineMetrics() {
             setInterval(() => {
                 let current = parseInt(onlineCounter.innerText.replace(/,/g, ''));
-                onlineCounter.innerText = (current + Math.floor(Math.random() * 10 - 5)).toLocaleString() + " online";
+                onlineCounter.innerText = (current + Math.floor(Math.random() * 14 - 7)).toLocaleString() + " active in KE";
             }, 5000);
         }
 
         function startLocalSimulationEngine() {
-            // Seed early baseline simulation content array maps
-            for(let i = 0; i < 4; i++) {
+            // Seed early baseline historical entries
+            for(let i = 0; i < 5; i++) {
                 renderIncomingMessageBubble({
                     id: Math.floor(Math.random() * 100000),
                     sender: `Anon#${Math.floor(1000 + Math.random() * 9000)}`,
                     content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
                     fire_score: Math.floor(Math.random() * 18),
-                    ice_score: Math.floor(Math.random() * 8)
+                    ice_score: Math.floor(Math.random() * 6)
                 });
             }
 
@@ -481,11 +476,11 @@
                     id: Math.floor(Math.random() * 1000000),
                     sender: `Anon#${Math.floor(1000 + Math.random() * 9000)}`,
                     content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
-                    fire_score: Math.floor(Math.random() * 6),
-                    ice_score: Math.floor(Math.random() * 4)
+                    fire_score: Math.floor(Math.random() * 5),
+                    ice_score: Math.floor(Math.random() * 3)
                 };
                 renderIncomingMessageBubble(generatedMock);
-            }, 6000);
+            }, 5000);
         }
     </script>
 </body>
