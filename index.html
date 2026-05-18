@@ -3,96 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Global Group Chat</title>
+    <title>The Global GC | Live</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Chat App Interface Wrapper -->
     <div class="chat-wrapper">
         
-        <!-- App Top Header Bar -->
+        <!-- App Header -->
         <header class="chat-header">
             <div class="header-info">
                 <h2>THE GLOBAL GC</h2>
-                <p><span class="online-pulse"></span> 14,892 online right now</p>
+                <p><span class="online-pulse"></span> <span id="online-counter">14,892</span> online</p>
             </div>
             <div class="header-actions">
-                <button class="rule-btn">📜 The Rules</button>
+                <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
             </div>
         </header>
 
-        <!-- Current Pinned Message / Topic of the Hour -->
-        <div class="pinned-banner">
-            <span class="pin-icon">📌</span>
-            <div class="pinned-text">
-                <p class="pin-meta">PINNED BY POPULAR VOTE (1.2k 🔥)</p>
-                <p class="pin-content">"My roommate just asked if he could borrow my toothbrush 'for an emergency' and won't elaborate."</p>
+        <!-- Rules Overlay Modal (Hidden by Default) -->
+        <div id="rules-overlay" class="rules-modal hidden">
+            <div class="rules-content">
+                <h3>The Code of Conduct</h3>
+                <ul>
+                    <li> Everyone is anonymous. No profiles, no traces.</li>
+                    <li> Posting triggers a <strong>60-second typing cooldown</strong>. Make it count.</li>
+                    <li> If your post gets <strong>50 Mutes (🤫)</strong>, it shatters and you get a 10-minute ban.</li>
+                </ul>
+                <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
             </div>
         </div>
 
-        <!-- The Message Stream Container -->
-        <main class="message-stream">
+        <!-- Pinned Banner Topic -->
+        <div class="pinned-banner">
+            <span class="pin-icon">📌</span>
+            <div class="pinned-text">
+                <p class="pin-meta">PINNED BY GLOBAL VOTE (1.2k 🔥)</p>
+                <p class="pin-content" id="pinned-msg">"My roommate just asked if he could borrow my toothbrush 'for an emergency' and absolutely refuses to elaborate."</p>
+            </div>
+        </div>
 
-            <!-- Message 1: Normal Anonymous Chat -->
-            <div class="msg-bubble incoming">
+        <!-- Live Message Feed -->
+        <main class="message-stream" id="chat-stream">
+
+            <div class="msg-bubble">
                 <div class="msg-meta">Anon #4920</div>
                 <div class="msg-text">
-                    Anyone else just completely faking their way through adulthood? I'm currently staring at a leak under my sink pretending I know what a wrench does.
+                    Anyone else just completely faking their way through adulthood? I'm currently staring at a leak under my kitchen sink pretending I know what a wrench does.
                 </div>
                 <div class="msg-reactions">
-                    <button class="react-btn fire">🔥 <span class="count">342</span></button>
-                    <button class="react-btn mute">🤫 <span class="count">12</span></button>
+                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">342</span></button>
+                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">12</span></button>
                 </div>
             </div>
 
-            <!-- Message 2: Highly Controversial / Borderline Muted -->
-            <div class="msg-bubble incoming warning">
+            <div class="msg-bubble warning">
                 <div class="msg-meta">Anon #1104</div>
                 <div class="msg-text">
-                    Putting pineapple on pizza isn't just a preference, it's a structural necessity for the moisture profile. Fight me.
+                    Putting pineapple on pizza isn't just a preference, it's a structural necessity for the moisture profile of the dough. Fight me.
                 </div>
                 <div class="msg-reactions">
-                    <button class="react-btn fire">🔥 <span class="count">41</span></button>
-                    <button class="react-btn mute danger">🤫 <span class="count">48/50 KICK</span></button>
+                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">41</span></button>
+                    <button class="react-btn mute danger" onclick="handleVote(this)">🤫 <span class="count">48/50 KICK</span></button>
                 </div>
             </div>
 
-            <!-- Message 3: Short Chaotic Thought -->
-            <div class="msg-bubble incoming">
+            <div class="system-notice">
+                💥 Anon #0392 was violently muted for 10 minutes by public vote.
+            </div>
+
+            <div class="msg-bubble">
                 <div class="msg-meta">Anon #8831</div>
                 <div class="msg-text">
-                    The absolute panic when you send a screenshot to the exact person you screenshotted. Send prayers.
+                    There is no adrenaline rush quite like accidentally sending a text complaining about someone TO that exact person. Send prayers.
                 </div>
                 <div class="msg-reactions">
-                    <button class="react-btn fire">🔥 <span class="count">891</span></button>
-                    <button class="react-btn mute">🤫 <span class="count">3</span></button>
+                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">891</span></button>
+                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">3</span></button>
                 </div>
-            </div>
-
-            <!-- System Message Event Notice -->
-            <div class="system-notice">
-                💥 Anon #0392 was just globally muted for 10 minutes by vote.
             </div>
 
         </main>
 
-        <!-- Bottom Chat Input Bar System -->
+        <!-- Message Input Bar Container -->
         <footer class="chat-input-area">
-            <div class="input-container">
-                <input type="text" placeholder="Say something worth keeping (60s cooldown)..." maxlength="280">
-                <button class="send-btn">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
+            <div class="input-container" id="input-bar-container">
+                <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
+                <button class="send-btn" id="send-btn" onclick="sendUserMessage()">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
                         <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                     </svg>
                 </button>
             </div>
+            <div id="cooldown-timer" class="cooldown-text hidden">Cooldown active: <span id="seconds-left">60</span>s</div>
         </footer>
 
     </div>
 
+    <!-- Live Simulating Engine Script -->
+    <script>
+        const chatStream = document.getElementById('chat-stream');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const cooldownTimer = document.getElementById('cooldown-timer');
+        const secondsLeftSpan = document.getElementById('seconds-left');
+        const inputContainer = document.getElementById('input-bar-container');
+        const onlineCounter = document.getElementById('online-counter');
+
+        const simulationPool = [
+            "I have an interview in 20 minutes and I accidentally spilled coffee all over my shirt. Wearing a zipped jacket and praying they don't ask me to take it off.",
+            "My neighbor plays smooth jazz at 3 AM. I can't even be mad because his taste is immaculate.",
+            "Accidentally said 'Love you bye' to my delivery driver. Currently packing my bags to move to another continent.",
+            "Hot take: Working 2 hours a day productively beats pretending to work for 8 hours. Corporate culture is a scam.",
+            "Just saw someone eat a whole lemon like an apple on the subway. No expression. Pure chaotic energy.",
+            "Is it considered stealing if I keep using my ex's Netflix account 3 years later? They haven't changed the password.",
+            "Spent my entire savings on a weekend trip because 'you only live once' and now my bank account is screaming at me."
+        ];
+
+        // Scroll to the bottom of the chat view
+        function scrollToBottom() {
+            chatStream.scrollTop = chatStream.scrollHeight;
+        }
+        window.onload = scrollToBottom;
+
+        // Toggle Rules Modal View
+        function toggleRules() {
+            document.getElementById('rules-overlay').classList.toggle('hidden');
+        }
+
+        // Handle upvote / downvote reaction clicks
+        function handleVote(button) {
+            const countSpan = button.querySelector('.count');
+            let currentCount = parseInt(countSpan.innerText);
+            
+            if (!button.classList.contains('voted')) {
+                button.classList.add('voted');
+                if(button.classList.contains('danger')) {
+                    countSpan.innerText = "MUTED";
+                    setTimeout(() => {
+                        button.closest('.msg-bubble').style.animation = "shatter 0.4s ease forwards";
+                        setTimeout(() => button.closest('.msg-bubble').remove(), 400);
+                    }, 600);
+                } else {
+                    countSpan.innerText = currentCount + 1;
+                }
+            }
+        }
+
+        // Append custom user messages to the live stream view
+        function sendUserMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const randomId = Math.floor(1000 + Math.random() * 9000);
+            const newMsg = document.createElement('div');
+            newMsg.className = 'msg-bubble user-msg';
+            newMsg.innerHTML = `
+                <div class="msg-meta">You (Anon #${randomId})</div>
+                <div class="msg-text">${text}</div>
+                <div class="msg-reactions">
+                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">1</span></button>
+                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">0</span></button>
+                </div>
+            `;
+            
+            chatStream.appendChild(newMsg);
+            userInput.value = '';
+            scrollToBottom();
+            triggerCooldown();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendUserMessage();
+            }
+        }
+
+        // Handle the 60-second input freeze requirement
+        function triggerCooldown() {
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            inputContainer.classList.add('disabled-state');
+            cooldownTimer.classList.remove('hidden');
+            
+            let timeLeft = 60;
+            secondsLeftSpan.innerText = timeLeft;
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                secondsLeftSpan.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    inputContainer.classList.remove('disabled-state');
+                    cooldownTimer.classList.add('hidden');
+                    userInput.placeholder = "Say something worth keeping...";
+                }
+            }, 1000);
+        }
+
+        // Simulate random incoming community chat streams
+        setInterval(() => {
+            const randomMsgText = simulationPool[Math.floor(Math.random() * simulationPool.length)];
+            const randomId = Math.floor(1000 + Math.random() * 9000);
+            const randomFire = Math.floor(5 + Math.random() * 200);
+            const randomMute = Math.floor(0 + Math.random() * 15);
+
+            const incomingMsg = document.createElement('div');
+            incomingMsg.className = 'msg-bubble';
+            incomingMsg.innerHTML = `
+                <div class="msg-meta">Anon #${randomId}</div>
+                <div class="msg-text">${randomMsgText}</div>
+                <div class="msg-reactions">
+                    <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">${randomFire}</span></button>
+                    <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">${randomMute}</span></button>
+                </div>
+            `;
+
+            chatStream.appendChild(incomingMsg);
+            
+            // Randomly clean up older messages to keep performance light
+            if(chatStream.children.length > 15) {
+                chatStream.removeChild(chatStream.firstElementChild);
+            }
+            scrollToBottom();
+        }, 6000);
+
+        // Fluctuate active user counts to simulate live load activity
+        setInterval(() => {
+            let currentCounterVal = parseInt(onlineCounter.innerText.replace(',', ''));
+            let flux = Math.floor(Math.random() * 10) - 4;
+            onlineCounter.innerText = (currentCounterVal + flux).toLocaleString();
+        }, 3500);
+    </script>
 </body>
 </html>
