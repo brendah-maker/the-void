@@ -10,7 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -143,7 +142,7 @@
         <header class="chat-header">
             <div class="header-info">
                 <h2>THE GLOBAL GC</h2>
-                <p><span class="online-pulse"></span> <span id="online-counter">Connecting...</span></p>
+                <p><span class="online-pulse"></span> <span id="online-counter">12,402 online</span></p>
             </div>
             <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
         </header>
@@ -198,22 +197,7 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
-        const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
-        
-        let supabaseClient = null;
-
-        // Initialize Supabase correctly
-        if (!SUPABASE_URL.includes("YOUR_PROJECT_ID")) {
-            try {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } catch (e) {
-                console.error("Supabase Error:", e);
-            }
-        }
-
-        // --- STATE ---
+        // --- LOCAL CONFIGURATION & STATE ---
         if (!localStorage.getItem('anon_user_tag')) {
             localStorage.setItem('anon_user_tag', Math.floor(1000 + Math.random() * 9000));
         }
@@ -235,14 +219,30 @@
         let activeReplyTarget = null;
         let localVotedMessageIDs = JSON.parse(localStorage.getItem('voted_pool')) || [];
 
-        // --- CORE FUNCTIONS ---
+        // --- SIMULATION POOL DATA (Pre-defined chat behaviors) ---
+        const simulationPool = [
+            "Hot take: Dark mode should be the default across every single framework.",
+            "Can we talk about how fast building interfaces with semantic custom variables actually is?",
+            "Just shipped a feature and it didn't break production context. Today is a massive win.",
+            "Honestly, sometimes a pure client-side architecture is all you actually need.",
+            "Is anyone else experiencing weird touch event delays on mobile layouts?",
+            "Clean layout structures are so satisfying to scroll through.",
+            "Currently refactoring bad nested styling loops. Send help.",
+            "Anonymity changes the entire dynamic of how open online groups talk.",
+            "Never skip testing your media breakpoints early in development."
+        ];
 
+        // --- SECURITY UTILITY ---
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // --- APP INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
-            if (supabaseClient) {
-                initializeRealtimeAppEngine();
-            } else {
-                startLocalFallbackSimulation();
-            }
+            startLocalSimulationEngine();
+            trackLiveOnlineMetrics();
         });
 
         function toggleRules() {
@@ -273,64 +273,12 @@
             userInput.focus();
         }
 
-        function initializeRealtimeAppEngine() {
-            fetchHistoricalMessageLogs();
-
-            // Listen for new messages
-            supabaseClient
-                .channel('public:messages')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                    renderIncomingMessageBubble(payload.new);
-                })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, payload => {
-                    updateLiveBubbleReactionUI(payload.new);
-                })
-                .subscribe();
-
-            trackLiveOnlineMetrics();
-        }
-
-        async function fetchHistoricalMessageLogs() {
-            const { data, error } = await supabaseClient
-                .from('messages')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(40);
-
-            if (data) {
-                data.reverse().forEach(msgRow => renderIncomingMessageBubble(msgRow, true));
-                snapToBottom();
-            }
-        }
-
-        async function sendUserMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            const finalContent = activeReplyTarget ? `<span class="reply-tag">@${activeReplyTarget}</span> ${text}` : text;
-            
-            userInput.value = '';
-            userInput.placeholder = "Say something worth keeping...";
-            activeReplyTarget = null;
-            triggerCooldown();
-
-            if (!supabaseClient) {
-                processLocalMessageEcho(myUserHandle, finalContent);
-                return;
-            }
-
-            const { error } = await supabaseClient.from('messages').insert([
-                { sender: myUserHandle, content: finalContent, fire_score: 0 }
-            ]);
-            
-            if (error) console.error("Send error:", error);
-        }
-
-        function renderIncomingMessageBubble(msgRow, isHistoricalLoad = false) {
+        // --- SIMULATED DATA INGESTION ENGINE ---
+        function renderIncomingMessageBubble(msgRow) {
             const isMe = msgRow.sender === myUserHandle;
             const uniqueNodeID = `msg-${msgRow.id}`;
             
-            if (document.getElementById(uniqueNodeID)) return; // Avoid duplicates
+            if (document.getElementById(uniqueNodeID)) return;
 
             const bubble = document.createElement('div');
             bubble.className = `msg-bubble ${isMe ? 'user-msg' : ''}`;
@@ -339,8 +287,8 @@
             const hasVotedThis = localVotedMessageIDs.includes(msgRow.id);
 
             bubble.innerHTML = `
-                <div class="msg-meta" onclick="setReplyTarget('${msgRow.sender}')">
-                    ${msgRow.sender} ${isMe ? '(You)' : '· Reply'}
+                <div class="msg-meta" onclick="setReplyTarget('${escapeHTML(msgRow.sender)}')">
+                    ${escapeHTML(msgRow.sender)} ${isMe ? '(You)' : '· Reply'}
                 </div>
                 <div class="msg-text">${msgRow.content}</div>
                 <div class="msg-reactions">
@@ -352,44 +300,59 @@
 
             chatStream.appendChild(bubble);
 
-            if (!isHistoricalLoad) {
-                if (isFrozen && !isMe) {
-                    missedMessagesCount++;
-                    missedCountSpan.innerText = missedMessagesCount;
-                    streamLockBadge.classList.remove('hidden');
-                } else {
-                    snapToBottom();
-                }
+            if (isFrozen && !isMe) {
+                missedMessagesCount++;
+                missedCountSpan.innerText = missedMessagesCount;
+                streamLockBadge.classList.remove('hidden');
+            } else {
+                snapToBottom();
             }
 
             if (msgRow.fire_score >= 15) pushMessageToHighlightDeck(msgRow);
         }
 
-        async function processReactionVote(messageID, btn) {
-            if (btn.classList.contains('voted') || !supabaseClient) return;
+        function sendUserMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const escapedText = escapeHTML(text);
+            const finalContent = activeReplyTarget 
+                ? `<span class="reply-tag">@${escapeHTML(activeReplyTarget)}</span> ${escapedText}` 
+                : escapedText;
+            
+            userInput.value = '';
+            userInput.placeholder = "Say something worth keeping...";
+            activeReplyTarget = null;
+            triggerCooldown();
+
+            // Direct local push
+            renderIncomingMessageBubble({ 
+                id: Date.now(), 
+                sender: myUserHandle, 
+                content: finalContent, 
+                fire_score: 0 
+            });
+        }
+
+        function processReactionVote(messageID, btn) {
+            if (btn.classList.contains('voted')) return;
 
             btn.classList.add('voted');
             localVotedMessageIDs.push(messageID);
             localStorage.setItem('voted_pool', JSON.stringify(localVotedMessageIDs));
 
-            // Update local UI immediately
             const countSpan = btn.querySelector('.count');
-            countSpan.innerText = parseInt(countSpan.innerText) + 1;
+            const updatedScore = parseInt(countSpan.innerText) + 1;
+            countSpan.innerText = updatedScore;
 
-            // Call the database function
-            await supabaseClient.rpc('increment_fire_score', { row_id: messageID });
-        }
+            // Mirror validation up to highlights dynamically if criteria met
+            const targetMeta = document.getElementById(`msg-${messageID}`);
+            const senderName = targetMeta.querySelector('.msg-meta').innerText.split(' ')[0];
+            const contentText = targetMeta.querySelector('.msg-text').innerHTML;
 
-        function updateLiveBubbleReactionUI(msgRow) {
-            const bubble = document.getElementById(`msg-${msgRow.id}`);
-            if (bubble) {
-                const countSpan = bubble.querySelector('.count');
-                // Only update if the user hasn't voted (to prevent flickering)
-                if (!bubble.querySelector('.react-btn').classList.contains('voted')) {
-                    countSpan.innerText = msgRow.fire_score;
-                }
+            if (updatedScore >= 15) {
+                pushMessageToHighlightDeck({ id: messageID, sender: senderName, content: contentText, fire_score: updatedScore });
             }
-            if (msgRow.fire_score >= 15) pushMessageToHighlightDeck(msgRow);
         }
 
         function pushMessageToHighlightDeck(msgRow) {
@@ -400,7 +363,7 @@
             let existing = document.getElementById(targetCardID);
 
             if (existing) {
-                existing.querySelector('.hl-meta').innerText = `${msgRow.sender} · ${msgRow.fire_score} 🔥`;
+                existing.querySelector('.hl-meta').innerText = `${escapeHTML(msgRow.sender)} · ${msgRow.fire_score} 🔥`;
                 return;
             }
 
@@ -409,7 +372,7 @@
             card.id = targetCardID;
             card.innerHTML = `
                 <div class="hl-card-body">
-                    <p class="hl-meta">${msgRow.sender} · ${msgRow.fire_score} 🔥</p>
+                    <p class="hl-meta">${escapeHTML(msgRow.sender)} · ${msgRow.fire_score} 🔥</p>
                     <p class="hl-text">${msgRow.content.replace(/<[^>]*>/g, '')}</p>
                 </div>
                 <button class="hl-share-btn" onclick="generateShareCard('${targetCardID}')">
@@ -446,37 +409,46 @@
 
         function generateShareCard(elementId) {
             const card = document.getElementById(elementId);
-            html2canvas(card, { backgroundColor: "#0c0e14", scale: 2 }).then(canvas => {
+            const shareBtn = card.querySelector('.hl-share-btn');
+            if (shareBtn) shareBtn.style.visibility = 'hidden';
+
+            html2canvas(card, { backgroundColor: "#141722", scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `viral_thought.png`;
                 link.href = canvas.toDataURL();
                 link.click();
+                if (shareBtn) shareBtn.style.visibility = 'visible';
             });
         }
 
         function trackLiveOnlineMetrics() {
-            onlineCounter.innerText = "12,402 online";
             setInterval(() => {
                 let current = parseInt(onlineCounter.innerText.replace(/,/g, ''));
                 onlineCounter.innerText = (current + Math.floor(Math.random() * 10 - 5)).toLocaleString() + " online";
             }, 5000);
         }
 
-        function startLocalFallbackSimulation() {
-            onlineCounter.innerText = "Demo Mode (Not Connected)";
-            setInterval(() => {
-                const mock = {
-                    id: Math.random(),
+        function startLocalSimulationEngine() {
+            // Seed a few initial historical simulation messages to fill empty state
+            for(let i = 0; i < 4; i++) {
+                renderIncomingMessageBubble({
+                    id: Math.floor(Math.random() * 100000),
                     sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`,
-                    content: "This is a demo message. Please configure Supabase keys to go live!",
-                    fire_score: Math.floor(Math.random() * 5)
-                };
-                renderIncomingMessageBubble(mock);
-            }, 8000);
-        }
+                    content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
+                    fire_score: Math.floor(Math.random() * 18) // Some might instantly populate trending bar!
+                });
+            }
 
-        function processLocalMessageEcho(sender, content) {
-            renderIncomingMessageBubble({ id: Date.now(), sender, content, fire_score: 0 });
+            // Continuously push new user responses over interval
+            setInterval(() => {
+                const generatedMock = {
+                    id: Math.floor(Math.random() * 1000000),
+                    sender: `Anon #${Math.floor(1000 + Math.random() * 9000)}`,
+                    content: simulationPool[Math.floor(Math.random() * simulationPool.length)],
+                    fire_score: Math.floor(Math.random() * 6)
+                };
+                renderIncomingMessageBubble(generatedMock);
+            }, 6000);
         }
     </script>
 </body>
