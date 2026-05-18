@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- External Production CDN Asset Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -17,7 +16,6 @@
 
     <div class="chat-wrapper">
         
-        <!-- App Header Container Row -->
         <header class="chat-header">
             <div class="header-info">
                 <h2>THE GLOBAL GC</h2>
@@ -26,21 +24,18 @@
             <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
         </header>
 
-        <!-- Rules Layout Overlay Modal -->
         <div id="rules-overlay" class="rules-modal hidden">
             <div class="rules-content">
                 <h3>The Code of Conduct</h3>
                 <ul>
                     <li>Complete anonymity. No logs, no profiles.</li>
                     <li>Posting triggers a 60s typing cooldown.</li>
-                    <li>Pass the quick verification challenge to chat.</li>
                     <li>Click the share icon on highlights to generate viral cards.</li>
                 </ul>
                 <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
             </div>
         </div>
 
-        <!-- Curation Highlights Feed Subsystem (Horizontal Cards) -->
         <div class="highlights-section">
             <div class="section-title">🔥 TRENDING IN THE LAST 10M</div>
             <div class="highlights-container" id="highlights-deck">
@@ -53,35 +48,23 @@
             </div>
         </div>
 
-        <!-- Live Core Message Stream Block -->
         <div class="feed-container-wrapper">
             <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
                 <div class="msg-bubble system-broadcast">
                     <div class="msg-meta">🔒 SECURITY NOTICE</div>
-                    <div class="msg-text">Welcome to the live feed. Pass the challenge inside the input bar below to register your anonymous session token and unlock global text broadcasting privileges.</div>
+                    <div class="msg-text">Welcome to the live feed. Tap any sender handle name to tag them directly in a conversational message thread reply.</div>
                 </div>
             </main>
 
-            <!-- Floating Stream Pause Navigation Badge Button -->
             <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
                 ↓ <span id="missed-count">0</span> new messages
             </button>
         </div>
 
-        <!-- Integrated Gatekeeping Input Console Frame Layout -->
         <footer class="chat-input-area">
-            
-            <!-- Anti-Bot Verification UI Panel Block -->
-            <div id="bot-gatekeeper" class="verification-panel">
-                <span class="gate-label">🛡️ Verification:</span>
-                <span class="gate-question">Type <strong style="color:#6366f1;">"void"</strong> to reveal inputs:</span>
-                <input type="text" id="verification-input" placeholder="Verify..." oninput="checkGatekeeperChallenge(this)">
-            </div>
-
-            <!-- Main Live Messaging Inputs Bar Row Container -->
-            <div class="input-container disabled-state" id="input-bar-container">
-                <input type="text" id="user-input" placeholder="Unlock chat via verification challenge..." maxlength="280" onkeypress="handleKeyPress(event)" disabled>
-                <button class="send-btn" id="send-btn" onclick="sendUserMessage()" disabled>
+            <div class="input-container" id="input-bar-container">
+                <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
+                <button class="send-btn" id="send-btn" onclick="sendUserMessage()">
                     <svg viewBox="0 0 24 24" width="18" height="18">
                         <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                     </svg>
@@ -91,8 +74,6 @@
         </footer>
 
     </div>
-
-    <!-- Core Operational Javascript Realtime Sync Layer Logic -->
 
     <script>
         // --- PRODUCTION DATABASE INJECTION CONFIGURATIONS ---
@@ -124,12 +105,9 @@
         const streamLockBadge = document.getElementById('stream-lock-badge');
         const missedCountSpan = document.getElementById('missed-count');
         const highlightsDeck = document.getElementById('highlights-deck');
-        const botGatekeeper = document.getElementById('bot-gatekeeper');
-        const verificationInput = document.getElementById('verification-input');
 
         let isFrozen = false;
         let missedMessagesCount = 0;
-        let isVerified = false;
         let activeReplyTarget = null;
         let localVotedMessageIDs = JSON.parse(localStorage.getItem('voted_pool')) || [];
 
@@ -137,46 +115,13 @@
             document.getElementById('rules-overlay').classList.toggle('hidden');
         }
 
-        // Core Unlocking Execution System
-        function triggerUnlockSuccess() {
-            isVerified = true;
-            
-            // 1. Clear UI blocks instantly
-            botGatekeeper.classList.add('hidden');
-            inputContainer.classList.remove('disabled-state');
-            userInput.disabled = false;
-            sendBtn.disabled = false;
-            userInput.placeholder = "Say something worth keeping...";
-            
-            // 2. Initialize network profiles or fallback engine
+        // Auto-Initialize on script load
+        window.addEventListener('DOMContentLoaded', () => {
             try {
                 initializeRealtimeAppEngine();
             } catch (err) {
                 console.warn("Database engine skipped initialization, switching to sandbox.", err);
                 startLocalFallbackSimulation();
-            }
-
-            // 3. Shift keyboard focus to the unlocked main chat bar
-            setTimeout(() => { userInput.focus(); }, 50);
-        }
-
-        // Checks while the user is typing
-        function checkGatekeeperChallenge(inputField) {
-            if (inputField.value.trim().toLowerCase() === "void") {
-                triggerUnlockSuccess();
-            }
-        }
-
-        // NEW: Listens for the Enter key explicitly on the verification box
-        verificationInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                if (verificationInput.value.trim().toLowerCase() === "void") {
-                    triggerUnlockSuccess();
-                } else {
-                    // Quick visual shake/error cue if they hit enter on a wrong word
-                    verificationInput.style.borderColor = "#f43f5e";
-                    setTimeout(() => { verificationInput.style.borderColor = "#2e354f"; }, 500);
-                }
             }
         });
 
@@ -199,7 +144,6 @@
         }
 
         function setReplyTarget(username) {
-            if (!isVerified) return;
             activeReplyTarget = username;
             userInput.placeholder = `Replying to ${username}...`;
             userInput.focus();
@@ -242,7 +186,7 @@
 
         async function sendUserMessage() {
             const text = userInput.value.trim();
-            if (!text || !isVerified) return;
+            if (!text) return;
 
             const messageTextPayload = activeReplyTarget ? `<span class="reply-tag">@${activeReplyTarget}</span> ${text}` : text;
             
@@ -406,11 +350,9 @@
                 secondsLeftSpan.innerText = timeLeft;
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    if (isVerified) {
-                        userInput.disabled = false;
-                        sendBtn.disabled = false;
-                        inputContainer.classList.remove('disabled-state');
-                    }
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    inputContainer.classList.remove('disabled-state');
                     cooldownTimer.classList.add('hidden');
                 }
             }, 1000);
