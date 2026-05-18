@@ -40,7 +40,6 @@ body {
     position: relative;
 }
 
-/* Nav Header Layout */
 .chat-header {
     background: rgba(12, 14, 20, 0.8);
     padding: 16px 20px;
@@ -87,7 +86,7 @@ body {
     cursor: pointer;
 }
 
-/* Horizontal Trending Highlights Subsystem Frame */
+/* Horizontal Highlights Row Styling */
 .highlights-section {
     background: #0e1017;
     border-bottom: 1px solid var(--border-soft);
@@ -108,20 +107,25 @@ body {
     gap: 12px;
     overflow-x: auto;
     padding: 0 20px;
-    scroll-behavior: smooth;
 }
 
 .highlights-container::-webkit-scrollbar { display: none; }
 
 .hl-card {
-    min-width: 220px;
-    max-width: 220px;
+    min-width: 240px;
+    max-width: 240px;
     background: #141722;
     border: 1px solid #1e2336;
-    padding: 10px 12px;
-    border-radius: 12px;
+    padding: 12px;
+    border-radius: 14px;
     flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
 }
+
+.hl-card-body { flex: 1; min-width: 0; }
 
 .hl-meta {
     font-size: 0.65rem;
@@ -133,13 +137,33 @@ body {
 .hl-text {
     font-size: 0.78rem;
     color: #94a3b8;
-    line-height: 1.35;
+    line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Feed viewport styling wrappers */
+.hl-share-btn {
+    background: #1a1f30;
+    border: none;
+    color: #64748b;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.hl-share-btn:hover {
+    background: var(--accent-glow);
+    color: white;
+}
+
+/* Feed Container Layout */
 .feed-container-wrapper {
     flex: 1;
     position: relative;
@@ -156,7 +180,7 @@ body {
     gap: 16px;
 }
 
-/* Dynamic Floating Stream Lock Badge Component */
+/* Pause Stream Badge UI Component */
 .stream-badge {
     position: absolute;
     bottom: 15px;
@@ -180,19 +204,13 @@ body {
     100% { bottom: 15px; opacity: 1; }
 }
 
-/* Chat Bubbles Layout Core */
+/* Message Bubble Structural Architecture */
 .msg-bubble {
     max-width: 85%;
     align-self: flex-start;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    animation: pop 0.25s cubic-bezier(0.1, 1, 0.1, 1) forwards;
-}
-
-@keyframes pop {
-    0% { transform: translateY(6px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
 }
 
 .msg-meta {
@@ -218,6 +236,20 @@ body {
     color: white;
 }
 
+/* Specialized Spark Layout Injector Nodes */
+.system-spark .msg-text {
+    background: #111322 !important;
+    border: 1px dashed #3a3f6d;
+    border-radius: 12px !important;
+}
+
+.system-broadcast .msg-text {
+    background: #160f12 !important;
+    border: 1px solid #3f1d24;
+    color: #fda4af;
+    border-radius: 12px !important;
+}
+
 .msg-reactions { display: flex; gap: 6px; margin-top: 1px; }
 
 .react-btn {
@@ -239,14 +271,40 @@ body {
     background: #171638;
 }
 
-/* Input system components setup */
+/* Anti-Bot Verification Challenge Layout & Typing Area Block */
 .chat-input-area {
     background: var(--panel-dark);
     padding: 16px 20px;
     border-top: 1px solid var(--border-soft);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
+}
+
+.verification-panel {
+    background: #11131c;
+    border: 1px solid #1f2438;
+    padding: 10px 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.gate-label { font-size: 0.68rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+.gate-question { font-size: 0.76rem; color: #94a3b8; flex: 1; }
+.verification-panel input {
+    width: 90px;
+    background: #06070a;
+    border: 1px solid #2e354f;
+    color: white;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 0.76rem;
+    outline: none;
+    text-align: center;
 }
 
 .input-container {
@@ -256,6 +314,7 @@ body {
     display: flex;
     align-items: center;
     padding: 4px 6px 4px 16px;
+    transition: opacity 0.2s ease;
 }
 
 .input-container input {
@@ -284,7 +343,7 @@ body {
     cursor: pointer;
 }
 
-.disabled-state { opacity: 0.5; background: #111; }
+.disabled-state { opacity: 0.35; cursor: not-allowed; }
 .cooldown-text { font-size: 0.7rem; color: #f43f5e; font-weight: 700; text-align: center; }
 
 /* Modal Configuration layout attributes */
