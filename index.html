@@ -93,23 +93,22 @@
     </div>
 
     <!-- Core Operational Javascript Realtime Sync Layer Logic -->
+
     <script>
         // --- PRODUCTION DATABASE INJECTION CONFIGURATIONS ---
-        // Replace these placeholder strings with your actual unique keys found on your Supabase settings dashboard
         const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
         const SUPABASE_ANON_KEY = "YOUR_ANON_PUBLIC_KEY";
         
         let supabase = null;
-        // Check if user has updated the placeholders before initializing
         if (SUPABASE_URL && !SUPABASE_URL.includes("YOUR_PROJECT_ID")) {
             try {
                 supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } catch (e) {
-                console.error("Failed to initialize Supabase client client library context:", e);
+                console.error("Failed to initialize Supabase client library:", e);
             }
         }
 
-        // Generate persistent local browser random user footprint ID session identifier
+        // Generate persistent user handle
         if (!localStorage.getItem('anon_user_tag')) {
             localStorage.setItem('anon_user_tag', Math.floor(1000 + Math.random() * 9000));
         }
@@ -126,6 +125,7 @@
         const missedCountSpan = document.getElementById('missed-count');
         const highlightsDeck = document.getElementById('highlights-deck');
         const botGatekeeper = document.getElementById('bot-gatekeeper');
+        const verificationInput = document.getElementById('verification-input');
 
         let isFrozen = false;
         let missedMessagesCount = 0;
@@ -137,29 +137,48 @@
             document.getElementById('rules-overlay').classList.toggle('hidden');
         }
 
+        // Core Unlocking Execution System
+        function triggerUnlockSuccess() {
+            isVerified = true;
+            
+            // 1. Clear UI blocks instantly
+            botGatekeeper.classList.add('hidden');
+            inputContainer.classList.remove('disabled-state');
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.placeholder = "Say something worth keeping...";
+            
+            // 2. Initialize network profiles or fallback engine
+            try {
+                initializeRealtimeAppEngine();
+            } catch (err) {
+                console.warn("Database engine skipped initialization, switching to sandbox.", err);
+                startLocalFallbackSimulation();
+            }
+
+            // 3. Shift keyboard focus to the unlocked main chat bar
+            setTimeout(() => { userInput.focus(); }, 50);
+        }
+
+        // Checks while the user is typing
         function checkGatekeeperChallenge(inputField) {
             if (inputField.value.trim().toLowerCase() === "void") {
-                isVerified = true;
-                
-                // 1. Instantly clear verification blockades and reveal inputs layout
-                botGatekeeper.classList.add('hidden');
-                inputContainer.classList.remove('disabled-state');
-                userInput.disabled = false;
-                sendBtn.disabled = false;
-                userInput.placeholder = "Say something worth keeping...";
-                
-                // 2. Safe execution hook wrapper step
-                try {
-                    initializeRealtimeAppEngine();
-                } catch (err) {
-                    console.warn("Database engine skipped initialization, switching to demo room sandbox framework setup.", err);
-                    startLocalFallbackSimulation();
-                }
-
-                // 3. Hand focus transition to elements safely
-                setTimeout(() => { userInput.focus(); }, 50);
+                triggerUnlockSuccess();
             }
         }
+
+        // NEW: Listens for the Enter key explicitly on the verification box
+        verificationInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                if (verificationInput.value.trim().toLowerCase() === "void") {
+                    triggerUnlockSuccess();
+                } else {
+                    // Quick visual shake/error cue if they hit enter on a wrong word
+                    verificationInput.style.borderColor = "#f43f5e";
+                    setTimeout(() => { verificationInput.style.borderColor = "#2e354f"; }, 500);
+                }
+            }
+        });
 
         function handleStreamScroll() {
             const distanceFromBottom = chatStream.scrollHeight - chatStream.scrollTop - chatStream.clientHeight;
@@ -193,10 +212,8 @@
                 return;
             }
 
-            // Fetch initial history logs payload on boot
             fetchHistoricalMessageLogs();
 
-            // Open websocket connection pipeline channels
             supabase
                 .channel('room-global')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
@@ -408,7 +425,6 @@
             }, 4000);
         }
 
-        // --- FALLBACK INTERFACE ENGINE LAYOUTS (No Database Keys Connected) ---
         function startLocalFallbackSimulation() {
             onlineCounter.innerText = "Demo Interface Room Mode Active";
             const dummyPool = [
