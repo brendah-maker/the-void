@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Global GC | Chill Mode</title>
+    <title>The Global GC | Upgraded</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2canvas library loaded to convert UI components seamlessly to downloadable image cards -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -29,53 +31,59 @@
                 <ul>
                     <li>Complete anonymity. No logs, no profiles.</li>
                     <li>Posting triggers a 60s typing cooldown.</li>
-                    <li>If you scroll up, the stream freezes so you can read at your own pace.</li>
+                    <li>Pass the quick verification challenge to chat.</li>
+                    <li>Click the share icon on highlights to generate viral cards.</li>
                 </ul>
                 <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
             </div>
         </div>
 
-        <!-- NEW: Curation Highlights Deck (Horizontal Slow Lane) -->
+        <!-- Curation Highlights Deck (Horizontal Card Lane) -->
         <div class="highlights-section">
             <div class="section-title">🔥 TRENDING IN THE LAST 10M</div>
             <div class="highlights-container" id="highlights-deck">
-                <!-- Highlight 1 -->
-                <div class="hl-card">
-                    <p class="hl-meta">Anon #4920 · 241 🔥</p>
-                    <p class="hl-text">Staring at a leak under my kitchen sink pretending I know what a wrench does.</p>
-                </div>
-                <!-- Highlight 2 -->
-                <div class="hl-card">
-                    <p class="hl-meta">Anon #8831 · 512 🔥</p>
-                    <p class="hl-text">The pure panic when you send a screenshot complaining about someone TO that exact person.</p>
+                <!-- Preset Viral Item -->
+                <div class="hl-card" id="preset-hl">
+                    <div class="hl-card-body">
+                        <p class="hl-meta">Anon #4920 · 241 🔥</p>
+                        <p class="hl-text">Staring at a leak under my kitchen sink pretending I know what a wrench does.</p>
+                    </div>
+                    <button class="hl-share-btn" onclick="generateShareCard('preset-hl')">
+                        <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Live Message Feed Block -->
+        <!-- Live Message Feed Block Viewport -->
         <div class="feed-container-wrapper">
             <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
-                <div class="msg-bubble">
-                    <div class="msg-meta">Anon #3021</div>
-                    <div class="msg-text">Welcome to the void. Say something iconic or get muted by the crowd.</div>
-                    <div class="msg-reactions">
-                        <button class="react-btn fire" onclick="handleVote(this)">🔥 <span class="count">12</span></button>
-                        <button class="react-btn mute" onclick="handleVote(this)">🤫 <span class="count">1</span></button>
-                    </div>
+                <div class="msg-bubble system-broadcast">
+                    <div class="msg-meta">🔒 SECURITY NOTICE</div>
+                    <div class="msg-text">Welcome. Prove your humanity by passing the security challenge in the input bar below to unlock full message streaming permissions.</div>
                 </div>
             </main>
 
-            <!-- NEW: Floating Stream Pause Alert Badge -->
+            <!-- Floating Stream Pause Alert Badge Button -->
             <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
                 ↓ <span id="missed-count">0</span> new messages
             </button>
         </div>
 
-        <!-- Chat Input Bar Row -->
+        <!-- Integrated Gatekeeping Input Area Configuration Layout -->
         <footer class="chat-input-area">
-            <div class="input-container" id="input-bar-container">
-                <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
-                <button class="send-btn" id="send-btn" onclick="sendUserMessage()">
+            
+            <!-- Anti-Bot Verification UI Panel Block -->
+            <div id="bot-gatekeeper" class="verification-panel">
+                <span class="gate-label">🛡️ Verification Challenge:</span>
+                <span class="gate-question">Type <strong style="color:#6366f1;">"void"</strong> to prove humanity:</span>
+                <input type="text" id="verification-input" placeholder="Type here..." oninput="checkGatekeeperChallenge(this)">
+            </div>
+
+            <!-- Main Typing Box System (Initially Blocked) -->
+            <div class="input-container disabled-state" id="input-bar-container">
+                <input type="text" id="user-input" placeholder="Unlock chat via verification above..." maxlength="280" onkeypress="handleKeyPress(event)" disabled>
+                <button class="send-btn" id="send-btn" onclick="sendUserMessage()" disabled>
                     <svg viewBox="0 0 24 24" width="18" height="18">
                         <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
                     </svg>
@@ -97,28 +105,48 @@
         const streamLockBadge = document.getElementById('stream-lock-badge');
         const missedCountSpan = document.getElementById('missed-count');
         const highlightsDeck = document.getElementById('highlights-deck');
+        const botGatekeeper = document.getElementById('bot-gatekeeper');
 
         let isFrozen = false;
         let missedMessagesCount = 0;
+        let isVerified = false;
+        let lastMessageTimestamp = Date.now();
 
         const simulationPool = [
             "My neighbor is playing smooth jazz at 3 AM. I can't even be mad because his taste is immaculate.",
             "Accidentally said 'Love you bye' to my Uber driver. Currently packing to leave the continent.",
             "Hot take: Working 2 hours a day productively beats pretending to look busy for 8 hours.",
             "Just saw someone eat a whole lemon like an apple on the bus. No expression. Pure villain energy.",
-            "Is it considered stealing if I keep using my ex's Netflix account 3 years later? Asking for a friend.",
-            "Spent my entire rent budget on concert tickets because 'YOLO' and now I'm cooking tap water for dinner."
+            "Spent my entire rent budget on concert tickets because 'YOLO' and now I'm cooking tap water.",
+            "Deleting all social apps to find inner peace, yet here I am on an anonymous live chat at midnight."
+        ];
+
+        const sparkPrompts = [
+            "🔥 THE SPARK: If you had to delete one social app from existence forever, why is it LinkedIn?",
+            "🔥 THE SPARK: What's a completely harmless hill you are willing to die on?",
+            "🔥 THE SPARK: Tell the chat a random secret you are taking to your absolute grave.",
+            "🔥 THE SPARK: What is the single dumbest purchase you have ever made that you don't regret?"
         ];
 
         function toggleRules() {
             document.getElementById('rules-overlay').classList.toggle('hidden');
         }
 
-        // Monitors user scrolling to toggle "Freeze Mode"
+        // Anti-Bot Logic Evaluation
+        function checkGatekeeperChallenge(inputField) {
+            if (inputField.value.trim().toLowerCase() === "void") {
+                isVerified = true;
+                botGatekeeper.classList.add('hidden');
+                inputContainer.classList.remove('disabled-state');
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.placeholder = "Say something worth keeping...";
+                userInput.focus();
+            }
+        }
+
         function handleStreamScroll() {
-            // If the user scrolls away from the bottom by more than 40px, freeze the feed scrolling
             const distanceFromBottom = chatStream.scrollHeight - chatStream.scrollTop - chatStream.clientHeight;
-            
             if (distanceFromBottom > 40) {
                 isFrozen = true;
             } else {
@@ -128,7 +156,6 @@
             }
         }
 
-        // Force snap view back to live updates
         function snapToBottom() {
             isFrozen = false;
             missedMessagesCount = 0;
@@ -143,29 +170,76 @@
                 button.classList.add('voted');
                 countSpan.innerText = currentCount + 1;
 
-                // Curation engine check: If highly voted, copy over to horizontal highlight deck
-                if (currentCount + 1 > 20 && !button.dataset.highlighted) {
+                // Push to highlights if interaction spikes
+                if (currentCount + 1 >= 15 && !button.dataset.highlighted) {
                     button.dataset.highlighted = true;
-                    pushToHighlights(button.closest('.msg-bubble'));
+                    pushToHighlights(button.closest('.msg-bubble'), currentCount + 1);
                 }
             }
         }
 
-        function pushToHighlights(bubbleElement) {
+        function pushToHighlights(bubbleElement, score) {
             const text = bubbleElement.querySelector('.msg-text').innerText;
             const meta = bubbleElement.querySelector('.msg-meta').innerText;
+            const uniqueId = "hl-" + Math.floor(Math.random() * 100000);
             
             const card = document.createElement('div');
             card.className = 'hl-card';
-            card.innerHTML = `<p class="hl-meta">${meta} · Viral 🔥</p><p class="hl-text">${text}</p>`;
+            card.id = uniqueId;
+            card.innerHTML = `
+                <div class="hl-card-body">
+                    <p class="hl-meta">${meta} · ${score} 🔥</p>
+                    <p class="hl-text">${text}</p>
+                </div>
+                <button class="hl-share-btn" onclick="generateShareCard('${uniqueId}')">
+                    <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                </button>
+            `;
             
             highlightsDeck.insertBefore(card, highlightsDeck.firstChild);
-            if(highlightsDeck.children.length > 5) highlightsDeck.lastChild.remove();
+            if(highlightsDeck.children.length > 6) highlightsDeck.lastChild.remove();
+        }
+
+        // HTML2Canvas Engine Screenshot Generator Configuration 
+        function generateShareCard(elementId) {
+            const card = document.getElementById(elementId);
+            
+            // Create a styled off-screen clone specifically tailored for canvas download layout proportions
+            const clone = card.cloneNode(true);
+            clone.style.width = "400px";
+            clone.style.position = "absolute";
+            clone.style.top = "-9999px";
+            clone.style.background = "#141722";
+            clone.style.border = "2px solid #6366f1";
+            clone.style.padding = "24px";
+            clone.style.borderRadius = "16px";
+            clone.querySelector('.hl-share-btn').remove(); // Strip away operational UI button
+            
+            // Inject watermark label asset node
+            const watermark = document.createElement('div');
+            watermark.innerText = "via THE GLOBAL GC";
+            watermark.style.fontSize = "10px";
+            watermark.style.color = "#4e5668";
+            watermark.style.marginTop = "16px";
+            watermark.style.textAlign = "right";
+            watermark.style.fontWeight = "800";
+            watermark.style.letterSpacing = "1px";
+            clone.appendChild(watermark);
+            
+            document.body.appendChild(clone);
+
+            html2canvas(clone, { backgroundColor: "#0c0e14", scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `global_gc_viral_${elementId}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                clone.remove();
+            });
         }
 
         function sendUserMessage() {
             const text = userInput.value.trim();
-            if (!text) return;
+            if (!text || !isVerified) return;
 
             const randomId = Math.floor(1000 + Math.random() * 9000);
             const newMsg = document.createElement('div');
@@ -181,6 +255,7 @@
             
             chatStream.appendChild(newMsg);
             userInput.value = '';
+            lastMessageTimestamp = Date.now();
             snapToBottom();
             triggerCooldown();
         }
@@ -203,19 +278,21 @@
                 secondsLeftSpan.innerText = timeLeft;
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    userInput.disabled = false;
-                    sendBtn.disabled = false;
-                    inputContainer.classList.remove('disabled-state');
+                    if (isVerified) {
+                        userInput.disabled = false;
+                        sendBtn.disabled = false;
+                        inputContainer.classList.remove('disabled-state');
+                    }
                     cooldownTimer.classList.add('hidden');
                 }
             }, 1000);
         }
 
-        // Simulated background streaming traffic
+        // Live Mock Streaming Simulation Engine
         setInterval(() => {
             const randomMsgText = simulationPool[Math.floor(Math.random() * simulationPool.length)];
             const randomId = Math.floor(1000 + Math.random() * 9000);
-            const randomFire = Math.floor(2 + Math.random() * 45);
+            const randomFire = Math.floor(2 + Math.random() * 25);
 
             const incomingMsg = document.createElement('div');
             incomingMsg.className = 'msg-bubble';
@@ -230,11 +307,8 @@
 
             chatStream.appendChild(incomingMsg);
             
-            if (chatStream.children.length > 25) {
-                chatStream.removeChild(chatStream.firstElementChild);
-            }
+            if (chatStream.children.length > 30) chatStream.removeChild(chatStream.firstElementChild);
 
-            // If user has locked the stream by scrolling up, increment badge instead of auto-scrolling
             if (isFrozen) {
                 missedMessagesCount++;
                 missedCountSpan.innerText = missedMessagesCount;
@@ -242,7 +316,26 @@
             } else {
                 chatStream.scrollTop = chatStream.scrollHeight;
             }
-        }, 3000); // Fast pacing to test out stream locking mechanics
+        }, 4000);
+
+        // The Spark Activity Heartbeat Monitor (Checks every 5s if chat is stalling)
+        setInterval(() => {
+            const idleTime = Date.now() - lastMessageTimestamp;
+            // Inject structural prompt challenge if zero message traffic activity for 15 seconds
+            if (idleTime > 15000) {
+                lastMessageTimestamp = Date.now(); // reset timer loop
+                const randomSpark = sparkPrompts[Math.floor(Math.random() * sparkPrompts.length)];
+                
+                const sparkMsg = document.createElement('div');
+                sparkMsg.className = 'msg-bubble system-spark';
+                sparkMsg.innerHTML = `
+                    <div class="msg-meta">⚡ THE SPARK SYSTEM</div>
+                    <div class="msg-text" style="color: #a5b4fc; font-weight: 600;">${randomSpark}</div>
+                `;
+                chatStream.appendChild(sparkMsg);
+                if (!isFrozen) chatStream.scrollTop = chatStream.scrollHeight;
+            }
+        }, 5000);
 
         setInterval(() => {
             let currentCounterVal = parseInt(onlineCounter.innerText.replace(',', ''));
