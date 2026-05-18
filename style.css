@@ -1,0 +1,334 @@
+/* Color Palette Variables & Layout Defaults */
+:root {
+    --bg-color: #0d0e12;
+    --card-bg: #161820;
+    --border-color: #242736;
+    --text-primary: #ffffff;
+    --text-secondary: #8a8f9f;
+    
+    /* Neon Accents */
+    --accent-text: #38bdf8;   /* Electric Blue */
+    --accent-money: #4ade80;  /* Neon Green */
+    --accent-secret: #f43f5e; /* Hot Pink */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    padding-bottom: 60px;
+    overflow-x: hidden;
+}
+
+/* Header Styling */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 5%;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(13, 14, 18, 0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -0.5px;
+}
+
+.logo .highlight {
+    color: var(--accent-text);
+}
+
+.live-counter {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+/* Continuous Micro-Graffiti Ticker CSS Animation */
+.ticker-wrap {
+    background: #1e1b4b;
+    border-bottom: 1px solid #312e81;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    height: 36px;
+}
+
+.ticker-title {
+    background: #312e81;
+    color: #a5b4fc;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0 15px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.ticker {
+    display: flex;
+    white-space: nowrap;
+    animation: marquee 25s linear infinite;
+}
+
+.ticker-item {
+    display: inline-block;
+    padding-right: 4rem;
+    font-size: 0.85rem;
+    color: #e0e7ff;
+    font-weight: 500;
+}
+
+@keyframes marquee {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Container Structure */
+.container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+/* Submission Framework UI */
+.submit-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.submit-box h3 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.tag-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.tag-btn {
+    background: #1f222f;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    padding: 10px 5px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-btn.active[data-type="text"] { border-color: var(--accent-text); color: var(--accent-text); background: rgba(56, 189, 248, 0.05); }
+.tag-btn.active[data-type="money"] { border-color: var(--accent-money); color: var(--accent-money); background: rgba(74, 222, 128, 0.05); }
+.tag-btn.active[data-type="secret"] { border-color: var(--accent-secret); color: var(--accent-secret); background: rgba(244, 63, 94, 0.05); }
+
+textarea {
+    width: 100%;
+    height: 90px;
+    background: #11131a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: none;
+    outline: none;
+    margin-bottom: 15px;
+}
+
+textarea:focus {
+    border-color: #3b82f6;
+}
+
+.submit-action-btn {
+    width: 100%;
+    background: var(--text-primary);
+    color: var(--bg-color);
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.submit-action-btn:hover {
+    opacity: 0.9;
+}
+
+/* Feed Filters Styling */
+.feed-tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.tab {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+}
+
+.tab.active {
+    color: var(--text-primary);
+}
+
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--text-primary);
+}
+
+/* Main Post Card Layout Components */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.card-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+/* Dynamic Color Sub-themes per Card Type */
+.card-text .card-badge { color: var(--accent-text); }
+.card-money .card-badge { color: var(--accent-money); }
+.card-secret .card-badge { color: var(--accent-secret); }
+
+.card-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.receipt-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #e2e8f0;
+    margin-bottom: 20px;
+}
+
+/* Custom Binary Selection Elements */
+.card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.vote-btn {
+    background: #11131a;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.vote-btn .pct {
+    font-weight: 700;
+    opacity: 0.6;
+}
+
+/* Custom Individual Vote Button Hover Effects */
+.red-flag:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.05); color: #ef4444;}
+.valid-excuse:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); color: #3b82f6;}
+.absolve:hover { border-color: #22c55e; background: rgba(34, 197, 94, 0.05); color: #22c55e;}
+.cast-stone:hover { border-color: #a1a1aa; background: rgba(161, 161, 170, 0.05); color: #a1a1aa;}
+.relatable:hover { border-color: #ec4899; background: rgba(236, 72, 153, 0.05); color: #ec4899;}
+.wild:hover { border-color: #f59e0b; background: rgba(245, 158, 11, 0.05); color: #f59e0b;}
+
+/* The AI Generation Feature Hook Styles */
+.ai-box {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 15px;
+}
+
+.ai-trigger-btn {
+    width: 100%;
+    background: linear-gradient(90deg, #1e1b4b, #311042);
+    border: 1px solid #4c1d95;
+    color: #c084fc;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.1s ease;
+}
+
+.ai-trigger-btn:hover {
+    transform: scale(1.01);
+    border-color: #8b5cf6;
+}
