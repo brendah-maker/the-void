@@ -3,112 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Human Receipt | Global Confessional</title>
+    <title>The Global Group Chat</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google Font for sleek, modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- App Header -->
-    <header class="app-header">
-        <div class="logo">THE HUMAN <span class="highlight">RECEIPT</span></div>
-        <div class="live-counter"><span class="pulse-dot"></span> 4,219 live voyeurs</div>
-    </header>
+    <!-- Chat App Interface Wrapper -->
+    <div class="chat-wrapper">
+        
+        <!-- App Top Header Bar -->
+        <header class="chat-header">
+            <div class="header-info">
+                <h2>THE GLOBAL GC</h2>
+                <p><span class="online-pulse"></span> 14,892 online right now</p>
+            </div>
+            <div class="header-actions">
+                <button class="rule-btn">📜 The Rules</button>
+            </div>
+        </header>
 
-    <!-- 24-Hour Micro-Graffiti Ticker -->
-    <div class="ticker-wrap">
-        <div class="ticker-title">LIVE GRAFFITI:</div>
-        <div class="ticker">
-            <span class="ticker-item">"I secretly hate my best friend’s fiancé and I’m trying to subtly ruin the wedding..."</span>
-            <span class="ticker-item">"Anonymity is a hell of a drug."</span>
-            <span class="ticker-item">"To whoever stole my labeled milk in block C: I know it was you."</span>
+        <!-- Current Pinned Message / Topic of the Hour -->
+        <div class="pinned-banner">
+            <span class="pin-icon">📌</span>
+            <div class="pinned-text">
+                <p class="pin-meta">PINNED BY POPULAR VOTE (1.2k 🔥)</p>
+                <p class="pin-content">"My roommate just asked if he could borrow my toothbrush 'for an emergency' and won't elaborate."</p>
+            </div>
         </div>
+
+        <!-- The Message Stream Container -->
+        <main class="message-stream">
+
+            <!-- Message 1: Normal Anonymous Chat -->
+            <div class="msg-bubble incoming">
+                <div class="msg-meta">Anon #4920</div>
+                <div class="msg-text">
+                    Anyone else just completely faking their way through adulthood? I'm currently staring at a leak under my sink pretending I know what a wrench does.
+                </div>
+                <div class="msg-reactions">
+                    <button class="react-btn fire">🔥 <span class="count">342</span></button>
+                    <button class="react-btn mute">🤫 <span class="count">12</span></button>
+                </div>
+            </div>
+
+            <!-- Message 2: Highly Controversial / Borderline Muted -->
+            <div class="msg-bubble incoming warning">
+                <div class="msg-meta">Anon #1104</div>
+                <div class="msg-text">
+                    Putting pineapple on pizza isn't just a preference, it's a structural necessity for the moisture profile. Fight me.
+                </div>
+                <div class="msg-reactions">
+                    <button class="react-btn fire">🔥 <span class="count">41</span></button>
+                    <button class="react-btn mute danger">🤫 <span class="count">48/50 KICK</span></button>
+                </div>
+            </div>
+
+            <!-- Message 3: Short Chaotic Thought -->
+            <div class="msg-bubble incoming">
+                <div class="msg-meta">Anon #8831</div>
+                <div class="msg-text">
+                    The absolute panic when you send a screenshot to the exact person you screenshotted. Send prayers.
+                </div>
+                <div class="msg-reactions">
+                    <button class="react-btn fire">🔥 <span class="count">891</span></button>
+                    <button class="react-btn mute">🤫 <span class="count">3</span></button>
+                </div>
+            </div>
+
+            <!-- System Message Event Notice -->
+            <div class="system-notice">
+                💥 Anon #0392 was just globally muted for 10 minutes by vote.
+            </div>
+
+        </main>
+
+        <!-- Bottom Chat Input Bar System -->
+        <footer class="chat-input-area">
+            <div class="input-container">
+                <input type="text" placeholder="Say something worth keeping (60s cooldown)..." maxlength="280">
+                <button class="send-btn">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </footer>
+
     </div>
-
-    <!-- Main Container -->
-    <main class="container">
-
-        <!-- Quick Submit Box -->
-        <section class="submit-box">
-            <h3>Drop an Anonymous Receipt</h3>
-            <div class="tag-selector">
-                <button class="tag-btn active" data-type="text">💬 Text Drama</button>
-                <button class="tag-btn" data-type="money">💸 Money Guilt</button>
-                <button class="tag-btn" data-type="secret">🤫 Raw Secret</button>
-            </div>
-            <textarea placeholder="Spill it. No accounts, no logs, complete anonymity..."></textarea>
-            <button class="submit-action-btn">Post to the Wall</button>
-        </section>
-
-        <!-- Feed Filtering Tabs -->
-        <div class="feed-tabs">
-            <button class="tab active">Trending</button>
-            <button class="tab">Latest</button>
-            <button class="tab">Most Chaotic</button>
-        </div>
-
-        <!-- Main Stream Feed -->
-        <section class="feed">
-
-            <!-- Card 1: Text Receipt -->
-            <div class="card card-text">
-                <div class="card-header">
-                    <span class="card-badge">💬 TEXT RECEIPT</span>
-                    <span class="card-time">3m ago</span>
-                </div>
-                <div class="card-body">
-                    <p class="receipt-content">"My boyfriend said he didn't reply to my texts for 14 hours because his phone accidentally fell behind the car battery while he was driving. Is this even physically possible or am I being played?"</p>
-                </div>
-                <div class="card-actions">
-                    <button class="vote-btn red-flag">🚩 Red Flag <span class="pct">84%</span></button>
-                    <button class="vote-btn valid-excuse">🛡️ Valid Excuse <span class="pct">16%</span></button>
-                </div>
-                <div class="ai-box">
-                    <button class="ai-trigger-btn">✨ Get AI Reply to leave them on read</button>
-                </div>
-            </div>
-
-            <!-- Card 2: Money Receipt -->
-            <div class="card card-money">
-                <div class="card-header">
-                    <span class="card-badge">💸 MONEY RECEIPT</span>
-                    <span class="card-time">14m ago</span>
-                </div>
-                <div class="card-body">
-                    <p class="receipt-content">"Just spent $230 on a highly specialized premium espresso machine. I have used it exactly twice in three months and now it acts as an incredibly expensive hook to hang my kitchen dish towels on."</p>
-                </div>
-                <div class="card-actions">
-                    <button class="vote-btn absolve">😇 Absolve Sin <span class="pct">71%</span></button>
-                    <button class="vote-btn cast-stone">🪨 Cast Stone <span class="pct">29%</span></button>
-                </div>
-                <div class="ai-box">
-                    <button class="ai-trigger-btn">✨ Get AI Financial Roast</button>
-                </div>
-            </div>
-
-            <!-- Card 3: Secret Receipt -->
-            <div class="card card-secret">
-                <div class="card-header">
-                    <span class="card-badge">🤫 SECRET RECEIPT</span>
-                    <span class="card-time">1h ago</span>
-                </div>
-                <div class="card-body">
-                    <p class="receipt-content">"I've been working a fully remote job for six months. I automated 90% of my tasks in the first week using python scripts. I work maybe 30 minutes a day and spend the rest playing video games. My manager called me a 'stellar cornerstone asset' yesterday."</p>
-                </div>
-                <div class="card-actions">
-                    <button class="vote-btn relatable">🤝 Relatable <span class="pct">93%</span></button>
-                    <button class="vote-btn wild">🤯 Absolute Wild <span class="pct">7%</span></button>
-                </div>
-                <div class="ai-box">
-                    <button class="ai-trigger-btn">✨ Get Chaotic AI Therapy</button>
-                </div>
-            </div>
-
-        </section>
-    </main>
 
 </body>
 </html>
