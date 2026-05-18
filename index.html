@@ -11,8 +11,8 @@
     <header class="app-header">
         <h1>Sanctuary</h1>
         <p class="subtitle">A safe, anonymous space to unpack your thoughts.</p>
-        <div class="crisis-banner">
-            Feeling overwhelmed? You are not alone. Text <strong>HOME</strong> to <strong>741741</strong> for free, 24/7 crisis support.
+        <div class="encouragement-banner">
+            Whatever is weighing on you, you don't have to carry it alone. Speaking your truth is the first step toward lightness. <strong>Your voice matters here.</strong>
         </div>
     </header>
 
@@ -34,6 +34,7 @@
                 <button class="reply-btn" onclick="toggleReply('1')">Join Conversation</button>
                 <div id="replies-1" class="replies-container" style="display:none;">
                     <div id="list-1"></div>
+                    <button id="more-1" class="read-more-btn" style="display:none;" onclick="expandReplies('1')">View more replies...</button>
                     <div class="reply-input-area">
                         <input type="text" id="input-1" class="reply-field" placeholder="Reply anonymously...">
                         <button class="reply-submit" onclick="addReply('1')">Reply</button>
@@ -46,7 +47,7 @@
 
     <script>
         function getRandomName() {
-            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion'];
+            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
             return `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
         }
 
@@ -67,6 +68,7 @@
                 <button class="reply-btn" onclick="toggleReply('${postId}')">Join Conversation</button>
                 <div id="replies-${postId}" class="replies-container" style="display:none;">
                     <div id="list-${postId}"></div>
+                    <button id="more-${postId}" class="read-more-btn" style="display:none;" onclick="expandReplies('${postId}')">View more replies...</button>
                     <div class="reply-input-area">
                         <input type="text" id="input-${postId}" class="reply-field" placeholder="Reply anonymously...">
                         <button class="reply-submit" onclick="addReply('${postId}')">Reply</button>
@@ -97,6 +99,24 @@
             
             list.appendChild(replyDiv);
             input.value = '';
+
+            // Check if we need to show the "Read More" button
+            const replies = list.getElementsByClassName('reply-item');
+            if (replies.length > 5) {
+                for (let i = 0; i < replies.length - 5; i++) {
+                    replies[i].style.display = 'none'; // Hide older replies
+                }
+                document.getElementById(`more-${postId}`).style.display = 'block';
+            }
+        }
+
+        function expandReplies(postId) {
+            const list = document.getElementById(`list-${postId}`);
+            const replies = list.getElementsByClassName('reply-item');
+            for (let i = 0; i < replies.length; i++) {
+                replies[i].style.display = 'block'; // Show all
+            }
+            document.getElementById(`more-${postId}`).style.display = 'none';
         }
     </script>
 </body>
