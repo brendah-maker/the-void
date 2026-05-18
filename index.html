@@ -145,7 +145,7 @@
         <header class="chat-header">
             <div class="header-info">
                 <h2>THE GLOBAL GC</h2>
-                <p><span class="online-pulse"></span> <span id="online-counter">42,890 active in KE</span></p>
+                <p><span class="online-pulse"></span> <span id="online-counter">64,201 nodes connected</span></p>
             </div>
             <button class="rule-btn" onclick="toggleRules()">📜 Rules</button>
         </header>
@@ -155,21 +155,21 @@
                 <h3>The Code of Conduct</h3>
                 <ul>
                     <li>✨ Complete anonymity. No logs, no profiles.</li>
-                    <li>💬 Click any handle label to instantly reply.</li>
-                    <li>⏳ Posting triggers a 60s typing cooldown.</li>
-                    <li>🔥 Upvote with Fire. Freeze uncool context with Ice.</li>
+                    <li>💬 Click any username row to immediately send a reply.</li>
+                    <li>⏳ Posting triggers a strict 60-second typing cooldown.</li>
+                    <li>🔥 Upvote with Fire. Freeze the baseline noise with Ice.</li>
                 </ul>
                 <button class="close-rules-btn" onclick="toggleRules()">Got it</button>
             </div>
         </div>
 
         <div class="highlights-section">
-            <div class="section-title">🔥 TRENDING IN NAIROBI FEED</div>
+            <div class="section-title">🔥 TRENDING GLOBALLY RIGHT NOW</div>
             <div class="highlights-container" id="highlights-deck">
                 <div class="hl-card" id="initial-hl-placeholder">
                     <div class="hl-card-body">
                         <p class="hl-meta">System · Notice</p>
-                        <p class="hl-text">Messages with 15+ fire ratings appear here.</p>
+                        <p class="hl-text">Messages crossing a 15+ fire metric scale instantly pin here.</p>
                     </div>
                 </div>
             </div>
@@ -179,19 +179,19 @@
             <main class="message-stream" id="chat-stream" onscroll="handleStreamScroll()">
                 <!-- System Message -->
                 <div class="msg-bubble system-broadcast">
-                    <div class="msg-meta">🔒 LIVE MONITOR</div>
-                    <div class="msg-text">Nairobi Transport Sector Fuel Strike updates. Standard session tags are assigned. Click handles to drop replies.</div>
+                    <div class="msg-meta">🔒 SESSION INITIALIZED</div>
+                    <div class="msg-text">No logins. No tracking. You are talking directly to the open web. Drop a thought or click a handle to engage.</div>
                 </div>
             </main>
 
             <button id="stream-lock-badge" class="stream-badge hidden" onclick="snapToBottom()">
-                ↓ <span id="missed-count">0</span> new updates
+                ↓ <span id="missed-count">0</span> new unread nodes
             </button>
         </div>
 
         <footer class="chat-input-area">
             <div class="input-container" id="input-bar-container">
-                <input type="text" id="user-input" placeholder="Share a ground update from your route..." maxlength="280" onkeypress="handleKeyPress(event)">
+                <input type="text" id="user-input" placeholder="Say something worth keeping..." maxlength="280" onkeypress="handleKeyPress(event)">
                 <button class="send-btn" id="send-btn" onclick="sendUserMessage()">
                     <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                 </button>
@@ -224,20 +224,23 @@
         
         let clientVoteRegistry = JSON.parse(localStorage.getItem('registry_votes_pool')) || {};
 
-        // --- REALISTIC KENYAN TRANSPORT STRIKE DATA POOL (MAY 18, 2026) ---
+        // --- GLOBAL INTERNET SIMULATION DATA POOL ---
         const simulationPool = [
-            "Super Metro completely grounding all their operations today is wild. Stage ya CBD is ghost town.",
-            "Nairobi is a literal walking nation this morning. People trekking from Mwiki and Kawangware all the way to CBD.",
-            "Wueh! Sh 200 from Wanye to town instead of Sh 60? Inafaa kuwa criminal.",
-            "Avoid Thika Road around Kihunguro and Ruiru bypass completely, police are clashing with protesters trying to block roads.",
-            "How is Diesel increasing by Ksh 46.29 overnight but our salaries stay exactly the same? EPRA is pushing people to the wall.",
-            "Even day scholars were told to stay home. St Ann Junior School and others suspended classes manually today.",
-            "Boda bodas are trying to cash in but protesters are stopping them from carrying passengers along Jogoo Road.",
-            "Waiyaki Way is totally jammed near the Shell station. Empty matatus parked all over the place.",
-            "Treasury CS John Mbadi saying he'll have urgent talks with the President to lower pump prices... let's see if it yields anything.",
-            "Paying Sh 150 from Kibera to CBD when it's normally Sh 50. Total survival mode right now.",
-            "The Transport Sector Alliance really pulled off a 99% success rate on this shutdown. Zero public transport moving.",
-            "Digital taxis also joined the strike. Cab fares are structural madness right now, surge is up 3x."
+            "Does anyone else feel like the internet was way more fun back in 2012?",
+            "Shoutout to everyone currently pretending to work right now while reading this.",
+            "Pineapple on pizza is a culinary masterpiece and I am completely done pretending it isn't.",
+            "What's a minor inconvenience that completely ruins your entire day?",
+            "Currently listening to a single song on repeat until I completely destroy the dopamine it gives me.",
+            "Imagine if your sleep schedule matched your actual real-life goals.",
+            "It’s 3 AM somewhere and someone is definitely arguing with an advanced AI bot on the internet.",
+            "We live in a world where your phone knows your attention span better than your closest friends do.",
+            "Hot take: Typing 'on my way' while still putting your socks on is a universal human right.",
+            "What is the most useless piece of random trivia taking up space in your head right now?",
+            "The real metric of wealth is being able to sleep past 8 AM on a Tuesday without feeling guilty.",
+            "Sometimes I look at old arcade designs and realize we completely lost our aesthetic way somewhere.",
+            "Can we agree that reading a physical book hits completely different than staring at a screen all day?",
+            "Every person you pass on the street is living a life as vivid and complex as your own. Wild to think about.",
+            "Deleting social media profiles is the modern equivalent of moving to a completely new city."
         ];
 
         // --- SECURITY UTILITY ---
@@ -335,7 +338,7 @@
             }
             
             userInput.value = '';
-            userInput.placeholder = "Share a ground update from your route...";
+            userInput.placeholder = "Say something worth keeping...";
             activeReplyTarget = null;
             triggerCooldown();
 
@@ -454,12 +457,12 @@
         function trackLiveOnlineMetrics() {
             setInterval(() => {
                 let current = parseInt(onlineCounter.innerText.replace(/,/g, ''));
-                onlineCounter.innerText = (current + Math.floor(Math.random() * 14 - 7)).toLocaleString() + " active in KE";
+                onlineCounter.innerText = (current + Math.floor(Math.random() * 24 - 12)).toLocaleString() + " nodes connected";
             }, 5000);
         }
 
         function startLocalSimulationEngine() {
-            // Seed early baseline historical entries
+            // Seed early baseline historical entries with varying global trends
             for(let i = 0; i < 5; i++) {
                 renderIncomingMessageBubble({
                     id: Math.floor(Math.random() * 100000),
