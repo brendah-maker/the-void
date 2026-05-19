@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanctuary | Release Your Thoughts</title>
-    <!-- External CSS Link -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
@@ -29,6 +28,16 @@
         <section id="feed-container"></section>
     </main>
 
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="modal-text">Are you sure you want to delete this?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="modal-btn">Cancel</button>
+                <button id="modal-confirm" class="modal-btn confirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -47,6 +56,26 @@
     const db = getFirestore(app);
     const postsRef = collection(db, "vents");
 
+    // --- Modal Logic ---
+    let modalCallback = null;
+    const modal = document.getElementById('custom-modal');
+    
+    window.showModal = (text, callback) => {
+        document.getElementById('modal-text').innerText = text;
+        modal.classList.add('active');
+        modalCallback = callback;
+    };
+
+    document.getElementById('modal-cancel').onclick = () => {
+        modal.classList.remove('active');
+        modalCallback = null;
+    };
+
+    document.getElementById('modal-confirm').onclick = async () => {
+        if (modalCallback) await modalCallback();
+        modal.classList.remove('active');
+    };
+
     function getMyIdentity() {
         const today = new Date().toDateString();
         let name = localStorage.getItem('sanctuary_user');
@@ -62,12 +91,8 @@
 
     function formatTime(timestamp) {
         if (!timestamp) return "";
-        const now = new Date();
         const date = new Date(timestamp);
-        const diff = (now - date) / 1000 / 60 / 60;
-        if (diff < 24 && now.getDate() === date.getDate()) return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        if (diff < 48) return "Yesterday";
-        return `${Math.floor(diff / 24)} days ago`;
+        return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     }
 
     window.createNewPost = async () => {
@@ -84,23 +109,20 @@
         input.value = '';
     };
 
-    window.deletePost = async (postId) => {
-        if (confirm("Are you sure you want to delete this conversation?")) {
+    window.deletePost = (postId) => {
+        showModal("Are you sure you want to delete this conversation?", async () => {
             await deleteDoc(doc(db, "vents", postId));
-        }
+        });
     };
 
     window.react = async (postId, type) => {
         const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
         const postKey = `${postId}_${type}`;
         const isRemoving = reactions[postKey];
-
         const postDoc = doc(db, "vents", postId);
         await updateDoc(postDoc, { [type]: increment(isRemoving ? -1 : 1) });
-
         if (isRemoving) delete reactions[postKey];
         else reactions[postKey] = true;
-        
         localStorage.setItem('user_reactions', JSON.stringify(reactions));
     };
 
@@ -108,31 +130,23 @@
         const input = document.getElementById(`input-${postId}`);
         const text = input.value.trim();
         if (!text) return;
-        
         const replyId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-
         await updateDoc(doc(db, "vents", postId), {
-            replies: arrayUnion({ 
-                id: replyId,
-                username: getMyIdentity(), 
-                text: text, 
-                time: Date.now() 
-            })
+            replies: arrayUnion({ id: replyId, username: getMyIdentity(), text: text, time: Date.now() })
         });
         input.value = '';
     };
 
-    window.deleteReply = async (postId, replyId) => {
-        if (confirm("Are you sure you want to delete this reply?")) {
+    window.deleteReply = (postId, replyId) => {
+        showModal("Are you sure you want to delete this reply?", async () => {
             const postDocRef = doc(db, "vents", postId);
             const postSnap = await getDoc(postDocRef);
-            
             if (postSnap.exists()) {
                 const currentReplies = postSnap.data().replies || [];
                 const updatedReplies = currentReplies.filter(r => r.id !== replyId);
                 await updateDoc(postDocRef, { replies: updatedReplies });
             }
-        }
+        });
     };
 
     onSnapshot(query(postsRef, orderBy("timestamp", "desc"), limit(50)), (snapshot) => {
@@ -149,16 +163,13 @@
 
         const card = document.createElement('div');
         card.className = 'vent-card';
-        
         const deleteButtonHtml = data.username === myName 
-            ? `<div class="post-del-container"><button class="del-btn" onclick="deletePost('${id}')">Delete</button></div>` 
-            : '';
+            ? `<div class="post-del-container"><button class="del-btn" onclick="deletePost('${id}')">Delete</button></div>` : '';
 
         card.innerHTML = `
             ${deleteButtonHtml}
             <span class="user-tag">${data.username}</span>
             <p class="vent-text">${data.text}</p>
-            
             <div class="interaction-bar">
                 <div class="reaction-row">
                     <button class="react-btn ${reactions[id+'_hugs'] ? 'active' : ''}" onclick="react('${id}', 'hugs')">🫂 <span>${data.hugs || 0}</span></button>
@@ -167,34 +178,27 @@
                 </div>
                 <button class="conv-toggle" onclick="toggleReplies('${id}')">Conversation (${replies.length})</button>
             </div>
-
             <div id="replies-${id}" class="replies-section" style="display:none;">
                 <div class="reply-list">
-                    ${replies.map(r => {
-                        const canDeleteReply = r.username === myName;
-                        return `
-                            <div class="reply-item">
-                                <div class="reply-header">
-                                    <span class="reply-user">${r.username}</span>
-                                    <div class="reply-meta">
-                                        <span class="reply-timestamp">${formatTime(r.time)}</span>
-                                        ${canDeleteReply ? `<button class="del-btn" onclick="deleteReply('${id}', '${r.id}')">✕</button>` : ''}
-                                    </div>
+                    ${replies.map(r => `
+                        <div class="reply-item">
+                            <div class="reply-header">
+                                <span class="reply-user">${r.username}</span>
+                                <div class="reply-meta">
+                                    <span class="reply-timestamp">${formatTime(r.time)}</span>
+                                    ${r.username === myName ? `<button class="del-btn" onclick="deleteReply('${id}', '${r.id}')">✕</button>` : ''}
                                 </div>
-                                <p class="reply-text">${r.text}</p>
                             </div>
-                        `;
-                    }).join('')}
+                            <p class="reply-text">${r.text}</p>
+                        </div>
+                    `).join('')}
                 </div>
                 <div class="reply-input-box">
                     <input type="text" id="input-${id}" placeholder="Write a reply...">
                     <button onclick="addReply('${id}')">Send</button>
                 </div>
             </div>
-
-            <div class="card-footer">
-                <span class="timestamp">Shared ${formatTime(data.timestamp)}</span>
-            </div>
+            <div class="card-footer"><span class="timestamp">Shared ${formatTime(data.timestamp)}</span></div>
         `;
         feed.appendChild(card);
     }
