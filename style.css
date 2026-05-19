@@ -18,6 +18,8 @@ body {
     font-weight: 800;
 }
 
+.subtitle { color: #94a3b8; font-size: 1.1rem; margin-top: 10px; }
+
 .encouragement-banner { 
     background: rgba(129, 140, 248, 0.1);
     border: 1px solid rgba(129, 140, 248, 0.3);
@@ -31,8 +33,8 @@ body {
 .app-container { max-width: 650px; margin: 0 auto; }
 
 .post-box { 
-    background: #1a1a2e; /* Brighter Navy Box */
-    border: 1px solid #4f46e5; /* Electric blue border */
+    background: #1a1a2e; 
+    border: 1px solid #4f46e5; 
     border-radius: 24px; 
     padding: 25px; 
     margin-bottom: 40px;
@@ -65,14 +67,15 @@ body {
     border-radius: 24px; 
     padding: 28px; 
     margin-bottom: 25px; 
+    position: relative;
 }
 
 .user-tag { 
     font-size: 0.8rem; color: #a855f7; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 1px; margin-bottom: 15px; display: block;
+    letter-spacing: 1px; margin-bottom: 15px; display: inline-block;
 }
 
-.vent-text { font-size: 1.25rem; color: #ffffff; margin-bottom: 15px; }
+.vent-text { font-size: 1.25rem; color: #ffffff; margin-bottom: 15px; word-break: break-word; }
 
 /* --- Interaction Bar --- */
 .interaction-bar { 
@@ -97,7 +100,6 @@ body {
 
 .react-btn span { font-size: 0.85rem; margin-left: 5px; color: #818cf8; font-weight: 600; }
 
-/* Twitter-style Active State */
 .react-btn.active {
     background: rgba(129, 140, 248, 0.2);
     border-color: #818cf8;
@@ -107,23 +109,47 @@ body {
 .conv-toggle { 
     background: transparent; 
     border: none; 
-    color: #818cf8; 
+    color: #c084fc; 
     cursor: pointer; 
-    font-weight: 600; 
-    font-size: 0.9rem; 
+    font-weight: 700; 
+    font-size: 0.85rem; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s;
 }
+.conv-toggle:hover { opacity: 0.8; }
 
 /* --- Replies Section --- */
 .replies-section { 
     background: #0a0a0c; 
-    border-radius: 15px; 
+    border-radius: 18px; 
     padding: 15px; 
     margin-bottom: 15px; 
-    border: 1px solid #222;
+    position: relative;
+    border: 1.5px solid transparent;
+    background-image: linear-gradient(#0a0a0c, #0a0a0c), linear-gradient(to right, #818cf8, #c084fc);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
 }
 
-.reply-item { border-bottom: 1px solid #222; padding: 10px 0; }
-.reply-user { font-size: 0.75rem; color: #a855f7; font-weight: 700; display: block; }
+.reply-item { 
+    border-bottom: 1px solid #222; 
+    padding: 12px 0; 
+}
+.reply-item:last-of-type { border-bottom: none; }
+
+.reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.reply-user { font-size: 0.75rem; color: #a855f7; font-weight: 700; }
+.reply-meta { display: flex; align-items: center; gap: 8px; }
+.reply-timestamp { font-size: 0.65rem; color: #666; font-weight: 600; }
+
+.reply-text { font-size: 0.85rem; color: #e2e8f0; word-break: break-word; }
 
 .read-more-btn { 
     background: transparent; 
@@ -132,6 +158,7 @@ body {
     cursor: pointer; 
     padding: 10px 0; 
     font-weight: 600; 
+    font-size: 0.8rem;
 }
 
 .reply-input-box { display: flex; gap: 10px; margin-top: 15px; }
@@ -143,6 +170,7 @@ body {
     color: white; 
     padding: 10px; 
     outline: none;
+    font-size: 0.85rem;
 }
 .reply-input-box button { 
     background: #4f46e5; 
@@ -152,12 +180,26 @@ body {
     border-radius: 10px; 
     cursor: pointer; 
     font-weight: 600;
+    font-size: 0.85rem;
 }
+
+/* --- Deletion Utility Buttons --- */
+.del-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 0.7rem;
+    cursor: pointer;
+    font-weight: 600;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
+
+.post-del-container { position: absolute; top: 24px; right: 28px; }
 
 /* --- Footer --- */
 .card-footer { display: flex; justify-content: flex-end; margin-top: 5px; }
 .timestamp { font-size: 0.7rem; color: #666; font-weight: 600; }
-
-/* --- Animation --- */
-.new-post-animation { animation: fadeInUp 0.6s ease-out; }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
