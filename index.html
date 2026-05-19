@@ -29,159 +29,136 @@
     </main>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
-            authDomain: "sanctuary-9859d.firebaseapp.com",
-            projectId: "sanctuary-9859d",
-            storageBucket: "sanctuary-9859d.firebasestorage.app",
-            messagingSenderId: "1013187735582",
-            appId: "1:1013187735582:web:d4eeff6a6a93fefc533e0f",
-            measurementId: "G-ZSVW56N08G"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
+        authDomain: "sanctuary-9859d.firebaseapp.com",
+        projectId: "sanctuary-9859d",
+        storageBucket: "sanctuary-9859d.firebasestorage.app",
+        messagingSenderId: "1013187735582",
+        appId: "1:1013187735582:web:d4eeff6a6a93fefc533e0f",
+        measurementId: "G-ZSVW56N08G"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const postsRef = collection(db, "vents");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const postsRef = collection(db, "vents");
 
-        function getMyIdentity() {
-            const today = new Date().toDateString();
-            let storedName = localStorage.getItem('sanctuary_user');
-            let storedDate = localStorage.getItem('sanctuary_date');
-
-            if (!storedName || storedDate !== today) {
-                const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
-                storedName = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
-                localStorage.setItem('sanctuary_user', storedName);
-                localStorage.setItem('sanctuary_date', today);
-            }
-            return storedName;
+    // Identity & Reaction Persistence
+    function getMyIdentity() {
+        const today = new Date().toDateString();
+        let name = localStorage.getItem('sanctuary_user');
+        if (!name || localStorage.getItem('sanctuary_date') !== today) {
+            const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
+            name = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
+            localStorage.setItem('sanctuary_user', name);
+            localStorage.setItem('sanctuary_date', today);
+            localStorage.setItem('user_reactions', JSON.stringify({})); // Reset reactions daily
         }
+        return name;
+    }
 
-        function formatTime(timestamp) {
-            const now = new Date();
-            const date = new Date(timestamp);
-            const diffInHours = (now - date) / (1000 * 60 * 60);
-            
-            if (diffInHours < 24 && now.getDate() === date.getDate()) {
-                return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-            } else if (diffInHours < 48 && now.getDate() !== date.getDate()) {
-                return "Yesterday";
-            } else {
-                const days = Math.floor(diffInHours / 24);
-                return `${days} days ago`;
-            }
-        }
+    function formatTime(timestamp) {
+        const now = new Date();
+        const date = new Date(timestamp);
+        const diff = (now - date) / 1000 / 60 / 60;
+        if (diff < 24 && now.getDate() === date.getDate()) return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        if (diff < 48) return "Yesterday";
+        return `${Math.floor(diff / 24)} days ago`;
+    }
 
-        window.createNewPost = async () => {
-            const textInput = document.getElementById('vent-input');
-            const text = textInput.value.trim();
-            if(!text) return;
-            await addDoc(postsRef, {
-                username: getMyIdentity(),
-                text: text,
-                timestamp: Date.now(),
-                hugs: 0,
-                hearts: 0,
-                sparkles: 0,
-                replies: []
-            });
-            textInput.value = '';
-        };
-
-        window.react = async (postId, type) => {
-            const postDoc = doc(db, "vents", postId);
-            const updateData = {};
-            updateData[type] = increment(1);
-            await updateDoc(postDoc, updateData);
-        };
-
-        window.addReply = async (postId) => {
-            const input = document.getElementById(`input-${postId}`);
-            const text = input.value.trim();
-            if(!text) return;
-
-            const postDoc = doc(db, "vents", postId);
-            await updateDoc(postDoc, {
-                replies: arrayUnion({
-                    username: getMyIdentity(),
-                    text: text,
-                    time: Date.now()
-                })
-            });
-            input.value = '';
-        };
-
-        const q = query(postsRef, orderBy("timestamp", "desc"), limit(50));
-        onSnapshot(q, (snapshot) => {
-            const feed = document.getElementById('feed-container');
-            feed.innerHTML = '';
-            snapshot.forEach((doc) => renderPost(doc.id, doc.data()));
+    window.createNewPost = async () => {
+        const input = document.getElementById('vent-input');
+        const text = input.value.trim();
+        if (!text) return;
+        await addDoc(postsRef, {
+            username: getMyIdentity(),
+            text: text,
+            timestamp: Date.now(),
+            hugs: 0, hearts: 0, sparkles: 0,
+            replies: []
         });
+        input.value = '';
+    };
 
-        function renderPost(id, data) {
-            const feed = document.getElementById('feed-container');
-            const replies = data.replies || [];
-            const showLimit = 5;
-            const hasMore = replies.length > showLimit;
+    // Twitter-style Reaction Logic (Add/Remove)
+    window.react = async (postId, type) => {
+        const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
+        const postKey = `${postId}_${type}`;
+        const isRemoving = reactions[postKey];
 
-            const card = document.createElement('div');
-            card.className = 'vent-card new-post-animation';
-            card.innerHTML = `
-                <span class="user-tag">${data.username}</span>
-                <p class="vent-text">${data.text}</p>
-                
-                <div class="interaction-bar">
-                    <div class="reaction-row">
-                        <button class="react-btn" onclick="react('${id}', 'hugs')">🫂 <span>${data.hugs || 0}</span></button>
-                        <button class="react-btn" onclick="react('${id}', 'hearts')">🤍 <span>${data.hearts || 0}</span></button>
-                        <button class="react-btn" onclick="react('${id}', 'sparkles')">✨ <span>${data.sparkles || 0}</span></button>
-                    </div>
-                    <button class="conv-toggle" onclick="toggleReplies('${id}')">Conversation (${replies.length})</button>
+        const postDoc = doc(db, "vents", postId);
+        await updateDoc(postDoc, { [type]: increment(isRemoving ? -1 : 1) });
+
+        if (isRemoving) delete reactions[postKey];
+        else reactions[postKey] = true;
+        
+        localStorage.setItem('user_reactions', JSON.stringify(reactions));
+        // Note: No page refresh needed; Firestore onSnapshot handles the UI update smoothly
+    };
+
+    window.addReply = async (postId) => {
+        const input = document.getElementById(`input-${postId}`);
+        const text = input.value.trim();
+        if (!text) return;
+        await updateDoc(doc(db, "vents", postId), {
+            replies: arrayUnion({ username: getMyIdentity(), text: text, time: Date.now() })
+        });
+        input.value = '';
+    };
+
+    // Feed Listener
+    onSnapshot(query(postsRef, orderBy("timestamp", "desc"), limit(50)), (snapshot) => {
+        const feed = document.getElementById('feed-container');
+        // Optimization: Only update changed elements to prevent "blinking"
+        feed.innerHTML = ''; 
+        snapshot.forEach((doc) => renderPost(doc.id, doc.data()));
+    });
+
+    function renderPost(id, data) {
+        const feed = document.getElementById('feed-container');
+        const replies = data.replies || [];
+        const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
+
+        const card = document.createElement('div');
+        card.className = 'vent-card';
+        card.innerHTML = `
+            <span class="user-tag">${data.username}</span>
+            <p class="vent-text">${data.text}</p>
+            
+            <div class="interaction-bar">
+                <div class="reaction-row">
+                    <button class="react-btn ${reactions[id+'_hugs'] ? 'active' : ''}" onclick="react('${id}', 'hugs')">🫂 <span>${data.hugs || 0}</span></button>
+                    <button class="react-btn ${reactions[id+'_hearts'] ? 'active' : ''}" onclick="react('${id}', 'hearts')">🤍 <span>${data.hearts || 0}</span></button>
+                    <button class="react-btn ${reactions[id+'_sparkles'] ? 'active' : ''}" onclick="react('${id}', 'sparkles')">✨ <span>${data.sparkles || 0}</span></button>
                 </div>
+                <button class="conv-toggle" onclick="toggleReplies('${id}')">Conversation (${replies.length})</button>
+            </div>
 
-                <div id="replies-${id}" class="replies-section" style="display:none;">
-                    <div class="reply-list" id="list-${id}">
-                        ${replies.slice(0, showLimit).map(r => `
-                            <div class="reply-item">
-                                <span class="reply-user">${r.username}</span>
-                                <p>${r.text}</p>
-                            </div>
-                        `).join('')}
-                        ${hasMore ? `<div id="more-${id}" style="display:none;">
-                            ${replies.slice(showLimit).map(r => `
-                                <div class="reply-item">
-                                    <span class="reply-user">${r.username}</span>
-                                    <p>${r.text}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <button class="read-more-btn" id="btn-more-${id}" onclick="showAllReplies('${id}')">Read more...</button>` : ''}
-                    </div>
-                    <div class="reply-input-box">
-                        <input type="text" id="input-${id}" placeholder="Write a kind word...">
-                        <button onclick="addReply('${id}')">Send</button>
-                    </div>
+            <div id="replies-${id}" class="replies-section" style="display:none;">
+                <div class="reply-list">
+                    ${replies.slice(0, 5).map(r => `<div class="reply-item"><span class="reply-user">${r.username}</span><p>${r.text}</p></div>`).join('')}
+                    ${replies.length > 5 ? `<button class="read-more-btn" onclick="this.previousElementSibling.style.display='block'; this.remove()">Read more...</button>` : ''}
                 </div>
-
-                <div class="card-footer">
-                    <span class="timestamp">Shared ${formatTime(data.timestamp)}</span>
+                <div class="reply-input-box">
+                    <input type="text" id="input-${id}" placeholder="Write a reply...">
+                    <button onclick="addReply('${id}')">Send</button>
                 </div>
-            `;
-            feed.appendChild(card);
-        }
+            </div>
 
-        window.toggleReplies = (id) => {
-            const el = document.getElementById(`replies-${id}`);
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
-        };
+            <div class="card-footer">
+                <span class="timestamp">Shared ${formatTime(data.timestamp)}</span>
+            </div>
+        `;
+        feed.appendChild(card);
+    }
 
-        window.showAllReplies = (id) => {
-            document.getElementById(`more-${id}`).style.display = 'block';
-            document.getElementById(`btn-more-${id}`).style.display = 'none';
-        };
-    </script>
+    window.toggleReplies = (id) => {
+        const el = document.getElementById(`replies-${id}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    };
+</script>
 </body>
 </html>
