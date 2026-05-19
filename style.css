@@ -83,10 +83,10 @@ body {
     padding: 6px 14px; border-radius: 50px; cursor: pointer; 
     transition: 0.2s; font-size: 1rem;
 }
-.react-btn span { font-size: 0.85rem; margin-left: 5px; color: #818cf8; font-weight: 600; }
+.react-btn span { font-size: 0.65rem; margin-left: 5px; color: #818cf8; font-weight: 600; }
 .react-btn.active { background: rgba(129, 140, 248, 0.2); border-color: #818cf8; }
 .react-btn.active span { color: #fff; }
-.conv-toggle { background: transparent; border: none; color: #c084fc; cursor: pointer; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.conv-toggle { background: transparent; border: none; color: #c084fc; cursor: pointer; font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* --- Replies Section --- */
 .replies-section { 
@@ -100,10 +100,10 @@ body {
 .reply-user { font-size: 0.75rem; color: #a855f7; font-weight: 700; }
 .reply-meta { display: flex; align-items: center; gap: 8px; }
 .reply-timestamp { font-size: 0.65rem; color: #666; font-weight: 600; }
-.reply-text { font-size: 0.85rem; color: #e2e8f0; word-break: break-word; }
+.reply-text { font-size: 0.65rem; color: #e2e8f0; word-break: break-word; }
 .reply-input-box { display: flex; gap: 10px; margin-top: 15px; }
-.reply-input-box input { flex: 1; background: #16161a; border: 1px solid #333; border-radius: 10px; color: white; padding: 10px; font-size: 0.85rem; }
-.reply-input-box button { background: #4f46e5; border: none; color: white; padding: 0 20px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+.reply-input-box input { flex: 1; background: #16161a; border: 1px solid #333; border-radius: 10px; color: white; padding: 10px; font-size: 0.65rem; }
+.reply-input-box button { background: #4f46e5; border: none; color: white; padding: 0 20px; border-radius: 10px; font-weight: 600; font-size: 0.65rem; cursor: pointer; }
 
 /* --- Deletion Buttons --- */
 .del-btn { background: transparent; border: none; color: #ef4444; font-size: 0.7rem; cursor: pointer; opacity: 0.5; padding: 2px 6px; }
