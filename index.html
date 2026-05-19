@@ -30,23 +30,13 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
-        authDomain: "sanctuary-9859d.firebaseapp.com",
-        projectId: "sanctuary-9859d",
-        storageBucket: "sanctuary-9859d.firebasestorage.app",
-        messagingSenderId: "1013187735582",
-        appId: "1:1013187735582:web:d4eeff6a6a93fefc533e0f",
-        measurementId: "G-ZSVW56N08G"
-    };
-
+    // ... (Your firebaseConfig stays the same) ...
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const postsRef = collection(db, "vents");
 
-    // Identity & Reaction Persistence
     function getMyIdentity() {
         const today = new Date().toDateString();
         let name = localStorage.getItem('sanctuary_user');
@@ -55,18 +45,14 @@
             name = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
             localStorage.setItem('sanctuary_user', name);
             localStorage.setItem('sanctuary_date', today);
-            localStorage.setItem('user_reactions', JSON.stringify({})); // Reset reactions daily
         }
         return name;
     }
 
+    // Helper for formatting time (Used for both posts and replies)
     function formatTime(timestamp) {
-        const now = new Date();
         const date = new Date(timestamp);
-        const diff = (now - date) / 1000 / 60 / 60;
-        if (diff < 24 && now.getDate() === date.getDate()) return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        if (diff < 48) return "Yesterday";
-        return `${Math.floor(diff / 24)} days ago`;
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     window.createNewPost = async () => {
@@ -83,20 +69,24 @@
         input.value = '';
     };
 
-    // Twitter-style Reaction Logic (Add/Remove)
-    window.react = async (postId, type) => {
-        const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
-        const postKey = `${postId}_${type}`;
-        const isRemoving = reactions[postKey];
+    window.deletePost = async (postId, postUser) => {
+        if (getMyIdentity() !== postUser) return alert("You can only delete your own thoughts.");
+        if (confirm("Remove this post permanently?")) {
+            await deleteDoc(doc(db, "vents", postId));
+        }
+    };
 
-        const postDoc = doc(db, "vents", postId);
-        await updateDoc(postDoc, { [type]: increment(isRemoving ? -1 : 1) });
-
-        if (isRemoving) delete reactions[postKey];
-        else reactions[postKey] = true;
+    window.deleteReply = async (postId, replyIndex) => {
+        const postRef = doc(db, "vents", postId);
+        const postSnap = await getDoc(postRef);
+        const replies = postSnap.data().replies;
         
-        localStorage.setItem('user_reactions', JSON.stringify(reactions));
-        // Note: No page refresh needed; Firestore onSnapshot handles the UI update smoothly
+        if (replies[replyIndex].username !== getMyIdentity()) return alert("You can only delete your own replies.");
+        
+        if (confirm("Remove this reply?")) {
+            replies.splice(replyIndex, 1);
+            await updateDoc(postRef, { replies: replies });
+        }
     };
 
     window.addReply = async (postId) => {
@@ -104,28 +94,42 @@
         const text = input.value.trim();
         if (!text) return;
         await updateDoc(doc(db, "vents", postId), {
-            replies: arrayUnion({ username: getMyIdentity(), text: text, time: Date.now() })
+            replies: arrayUnion({ 
+                username: getMyIdentity(), 
+                text: text, 
+                time: Date.now() 
+            })
         });
         input.value = '';
     };
 
-    // Feed Listener
+    window.react = async (postId, type) => {
+        const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
+        const postKey = `${postId}_${type}`;
+        const isRemoving = reactions[postKey];
+        await updateDoc(doc(db, "vents", postId), { [type]: increment(isRemoving ? -1 : 1) });
+        if (isRemoving) delete reactions[postKey]; else reactions[postKey] = true;
+        localStorage.setItem('user_reactions', JSON.stringify(reactions));
+    };
+
     onSnapshot(query(postsRef, orderBy("timestamp", "desc"), limit(50)), (snapshot) => {
         const feed = document.getElementById('feed-container');
-        // Optimization: Only update changed elements to prevent "blinking"
         feed.innerHTML = ''; 
         snapshot.forEach((doc) => renderPost(doc.id, doc.data()));
     });
 
     function renderPost(id, data) {
         const feed = document.getElementById('feed-container');
-        const replies = data.replies || [];
+        const currentUser = getMyIdentity();
         const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
 
         const card = document.createElement('div');
         card.className = 'vent-card';
         card.innerHTML = `
-            <span class="user-tag">${data.username}</span>
+            <div class="card-header">
+                <span class="user-tag">${data.username}</span>
+                ${data.username === currentUser ? `<span class="delete-btn" onclick="deletePost('${id}', '${data.username}')">🗑️</span>` : ''}
+            </div>
             <p class="vent-text">${data.text}</p>
             
             <div class="interaction-bar">
@@ -134,13 +138,23 @@
                     <button class="react-btn ${reactions[id+'_hearts'] ? 'active' : ''}" onclick="react('${id}', 'hearts')">🤍 <span>${data.hearts || 0}</span></button>
                     <button class="react-btn ${reactions[id+'_sparkles'] ? 'active' : ''}" onclick="react('${id}', 'sparkles')">✨ <span>${data.sparkles || 0}</span></button>
                 </div>
-                <button class="conv-toggle" onclick="toggleReplies('${id}')">Conversation (${replies.length})</button>
+                <button class="conv-toggle" onclick="toggleReplies('${id}')">Conversation (${data.replies.length})</button>
             </div>
 
             <div id="replies-${id}" class="replies-section" style="display:none;">
                 <div class="reply-list">
-                    ${replies.slice(0, 5).map(r => `<div class="reply-item"><span class="reply-user">${r.username}</span><p>${r.text}</p></div>`).join('')}
-                    ${replies.length > 5 ? `<button class="read-more-btn" onclick="this.previousElementSibling.style.display='block'; this.remove()">Read more...</button>` : ''}
+                    ${data.replies.map((r, index) => `
+                        <div class="reply-item">
+                            <div class="reply-header">
+                                <span class="reply-user">${r.username}</span>
+                                <div class="reply-meta">
+                                    <span class="reply-time">${formatTime(r.time)}</span>
+                                    ${r.username === currentUser ? `<span class="delete-icon-small" onclick="deleteReply('${id}', ${index})">🗑️</span>` : ''}
+                                </div>
+                            </div>
+                            <p>${r.text}</p>
+                        </div>
+                    `).join('')}
                 </div>
                 <div class="reply-input-box">
                     <input type="text" id="input-${id}" placeholder="Write a reply...">
@@ -159,6 +173,6 @@
         const el = document.getElementById(`replies-${id}`);
         el.style.display = el.style.display === 'none' ? 'block' : 'none';
     };
-</script>
+</script></script>
 </body>
 </html>
