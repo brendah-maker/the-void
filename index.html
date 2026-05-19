@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanctuary | Release Your Thoughts</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -38,6 +39,16 @@
         </div>
     </div>
 
+    <div id="pwa-install-banner" class="install-banner">
+        <div class="install-content">
+            <p>Save Sanctuary to your home screen for easy access.</p>
+            <div class="install-actions">
+                <button id="btn-install-ignore">Maybe later</button>
+                <button id="btn-install-now">Add to Home Screen</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -56,7 +67,38 @@
     const db = getFirestore(app);
     const postsRef = collection(db, "vents");
 
-    // --- Modal Logic ---
+    // --- PWA Installation Logic ---
+    let deferredPrompt;
+    const installBanner = document.getElementById('pwa-install-banner');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Show our custom banner
+        installBanner.classList.add('active');
+    });
+
+    document.getElementById('btn-install-now').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            installBanner.classList.remove('active');
+        }
+    });
+
+    document.getElementById('btn-install-ignore').addEventListener('click', () => {
+        installBanner.classList.remove('active');
+    });
+
+    // Register simple Service Worker for PWA compliance
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // --- Modal & Identity Logic (Keep existing from previous steps) ---
     let modalCallback = null;
     const modal = document.getElementById('custom-modal');
     
