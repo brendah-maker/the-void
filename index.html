@@ -17,8 +17,6 @@
         </div>
     </header>
 
-    <div id="toast" class="toast">Sent! Your voice has been heard.</div>
-
     <main class="app-container">
         <section class="post-box">
             <textarea id="vent-input" placeholder="What's weighing on your mind? (Keep it anonymous...)"></textarea>
@@ -32,7 +30,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
@@ -53,7 +51,6 @@
             let storedName = localStorage.getItem('sanctuary_user');
             let storedDate = localStorage.getItem('sanctuary_date');
 
-            // Reset if it's a new day or no name exists
             if (!storedName || storedDate !== today) {
                 const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
                 storedName = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
@@ -69,19 +66,13 @@
             const diffInHours = (now - date) / (1000 * 60 * 60);
             
             if (diffInHours < 24 && now.getDate() === date.getDate()) {
-                return `Shared at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             } else if (diffInHours < 48 && now.getDate() !== date.getDate()) {
-                return "Shared Yesterday";
+                return "Yesterday";
             } else {
                 const days = Math.floor(diffInHours / 24);
-                return `Shared ${days} days ago`;
+                return `${days} days ago`;
             }
-        }
-
-        function showToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         window.createNewPost = async () => {
@@ -94,10 +85,10 @@
                 timestamp: Date.now(),
                 hugs: 0,
                 hearts: 0,
-                sparkles: 0
+                sparkles: 0,
+                replies: []
             });
             textInput.value = '';
-            showToast();
         };
 
         window.react = async (postId, type) => {
@@ -105,6 +96,22 @@
             const updateData = {};
             updateData[type] = increment(1);
             await updateDoc(postDoc, updateData);
+        };
+
+        window.addReply = async (postId) => {
+            const input = document.getElementById(`input-${postId}`);
+            const text = input.value.trim();
+            if(!text) return;
+
+            const postDoc = doc(db, "vents", postId);
+            await updateDoc(postDoc, {
+                replies: arrayUnion({
+                    username: getMyIdentity(),
+                    text: text,
+                    time: Date.now()
+                })
+            });
+            input.value = '';
         };
 
         const q = query(postsRef, orderBy("timestamp", "desc"), limit(50));
@@ -116,23 +123,65 @@
 
         function renderPost(id, data) {
             const feed = document.getElementById('feed-container');
+            const replies = data.replies || [];
+            const showLimit = 5;
+            const hasMore = replies.length > showLimit;
+
             const card = document.createElement('div');
             card.className = 'vent-card new-post-animation';
             card.innerHTML = `
                 <span class="user-tag">${data.username}</span>
                 <p class="vent-text">${data.text}</p>
                 
-                <div class="card-footer">
+                <div class="interaction-bar">
                     <div class="reaction-row">
                         <button class="react-btn" onclick="react('${id}', 'hugs')">🫂 <span>${data.hugs || 0}</span></button>
                         <button class="react-btn" onclick="react('${id}', 'hearts')">🤍 <span>${data.hearts || 0}</span></button>
                         <button class="react-btn" onclick="react('${id}', 'sparkles')">✨ <span>${data.sparkles || 0}</span></button>
                     </div>
-                    <span class="timestamp">${formatTime(data.timestamp)}</span>
+                    <button class="conv-toggle" onclick="toggleReplies('${id}')">Conversation (${replies.length})</button>
+                </div>
+
+                <div id="replies-${id}" class="replies-section" style="display:none;">
+                    <div class="reply-list" id="list-${id}">
+                        ${replies.slice(0, showLimit).map(r => `
+                            <div class="reply-item">
+                                <span class="reply-user">${r.username}</span>
+                                <p>${r.text}</p>
+                            </div>
+                        `).join('')}
+                        ${hasMore ? `<div id="more-${id}" style="display:none;">
+                            ${replies.slice(showLimit).map(r => `
+                                <div class="reply-item">
+                                    <span class="reply-user">${r.username}</span>
+                                    <p>${r.text}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="read-more-btn" id="btn-more-${id}" onclick="showAllReplies('${id}')">Read more...</button>` : ''}
+                    </div>
+                    <div class="reply-input-box">
+                        <input type="text" id="input-${id}" placeholder="Write a kind word...">
+                        <button onclick="addReply('${id}')">Send</button>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <span class="timestamp">Shared ${formatTime(data.timestamp)}</span>
                 </div>
             `;
             feed.appendChild(card);
         }
+
+        window.toggleReplies = (id) => {
+            const el = document.getElementById(`replies-${id}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.showAllReplies = (id) => {
+            document.getElementById(`more-${id}`).style.display = 'block';
+            document.getElementById(`btn-more-${id}`).style.display = 'none';
+        };
     </script>
 </body>
 </html>
