@@ -4,8 +4,214 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanctuary | Release Your Thoughts</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Styles --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background-color: #050505; 
+            color: #f1f1f1; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* --- Header --- */
+        .app-header { text-align: center; max-width: 650px; margin: 60px auto 40px auto; }
+        .app-header h1 { 
+            font-size: 3.5rem; 
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .subtitle { color: #94a3b8; font-size: 1.1rem; margin-top: 10px; }
+
+        .encouragement-banner { 
+            background: rgba(129, 140, 248, 0.1);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            color: #e0e0e0; 
+            padding: 20px; 
+            border-radius: 20px; 
+            margin-top: 25px;
+        }
+
+        /* --- Input Area --- */
+        .app-container { max-width: 650px; margin: 0 auto; }
+
+        .post-box { 
+            background: #1a1a2e; 
+            border: 1px solid #4f46e5; 
+            border-radius: 24px; 
+            padding: 25px; 
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+        }
+
+        #vent-input { 
+            width: 100%; height: 120px; background: transparent; border: none; 
+            color: #ffffff; font-size: 1.2rem; outline: none; resize: none; 
+        }
+        #vent-input::placeholder { color: #94a3b8; }
+
+        .action-row { 
+            display: flex; 
+            justify-content: flex-end; 
+            border-top: 1px solid rgba(255, 255, 255, 0.1); 
+            padding-top: 15px; 
+        }
+
+        #submit-btn { 
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white; border: none; padding: 14px 28px; 
+            border-radius: 30px; font-weight: 700; cursor: pointer;
+        }
+
+        /* --- Post Cards --- */
+        .vent-card { 
+            background: #111113; 
+            border: 1px solid #222225; 
+            border-radius: 24px; 
+            padding: 28px; 
+            margin-bottom: 25px; 
+            position: relative;
+        }
+
+        .user-tag { 
+            font-size: 0.8rem; color: #a855f7; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 15px; display: inline-block;
+        }
+
+        .vent-text { font-size: 1.25rem; color: #ffffff; margin-bottom: 15px; word-break: break-word; }
+
+        /* --- Interaction Bar --- */
+        .interaction-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+        }
+
+        .reaction-row { display: flex; gap: 10px; }
+
+        .react-btn { 
+            background: #1a1a1d; 
+            border: 1px solid #333; 
+            color: white; 
+            padding: 6px 14px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+
+        .react-btn span { font-size: 0.85rem; margin-left: 5px; color: #818cf8; font-weight: 600; }
+
+        .react-btn.active {
+            background: rgba(129, 140, 248, 0.2);
+            border-color: #818cf8;
+        }
+        .react-btn.active span { color: #fff; }
+
+        .conv-toggle { 
+            background: transparent; 
+            border: none; 
+            color: #c084fc; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 0.85rem; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+        .conv-toggle:hover { opacity: 0.8; }
+
+        /* --- Replies Section (Colorful Updates) --- */
+        .replies-section { 
+            background: #0a0a0c; 
+            border-radius: 18px; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            position: relative;
+            border: 1.5px solid transparent;
+            background-image: linear-gradient(#0a0a0c, #0a0a0c), linear-gradient(to right, #818cf8, #c084fc);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+
+        .reply-item { 
+            border-bottom: 1px solid #222; 
+            padding: 12px 0; 
+        }
+        .reply-item:last-of-type { border-bottom: none; }
+        
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        
+        .reply-user { font-size: 0.75rem; color: #a855f7; font-weight: 700; }
+        .reply-meta { display: flex; align-items: center; gap: 8px; }
+        .reply-timestamp { font-size: 0.65rem; color: #666; font-weight: 600; }
+        
+        .reply-text { font-size: 0.85rem; color: #e2e8f0; word-break: break-word; }
+
+        .read-more-btn { 
+            background: transparent; 
+            border: none; 
+            color: #6366f1; 
+            cursor: pointer; 
+            padding: 10px 0; 
+            font-weight: 600; 
+            font-size: 0.8rem;
+        }
+
+        .reply-input-box { display: flex; gap: 10px; margin-top: 15px; }
+        .reply-input-box input { 
+            flex: 1; 
+            background: #16161a; 
+            border: 1px solid #333; 
+            border-radius: 10px; 
+            color: white; 
+            padding: 10px; 
+            outline: none;
+            font-size: 0.85rem;
+        }
+        .reply-input-box button { 
+            background: #4f46e5; 
+            border: none; 
+            color: white; 
+            padding: 0 20px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* --- Deletion Utility Buttons --- */
+        .del-btn {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-weight: 600;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
+        
+        .post-del-container { position: absolute; top: 24px; right: 28px; }
+
+        /* --- Footer --- */
+        .card-footer { display: flex; justify-content: flex-end; margin-top: 5px; }
+        .timestamp { font-size: 0.7rem; color: #666; font-weight: 600; }
+    </style>
 </head>
 <body>
 
@@ -30,7 +236,7 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
@@ -61,6 +267,7 @@
     }
 
     function formatTime(timestamp) {
+        if (!timestamp) return "";
         const now = new Date();
         const date = new Date(timestamp);
         const diff = (now - date) / 1000 / 60 / 60;
@@ -83,7 +290,12 @@
         input.value = '';
     };
 
-    // Twitter-style Reaction Logic (Add/Remove)
+    window.deletePost = async (postId) => {
+        if (confirm("Are you sure you want to delete your thought from the void?")) {
+            await deleteDoc(doc(db, "vents", postId));
+        }
+    };
+
     window.react = async (postId, type) => {
         const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
         const postKey = `${postId}_${type}`;
@@ -96,23 +308,43 @@
         else reactions[postKey] = true;
         
         localStorage.setItem('user_reactions', JSON.stringify(reactions));
-        // Note: No page refresh needed; Firestore onSnapshot handles the UI update smoothly
     };
 
     window.addReply = async (postId) => {
         const input = document.getElementById(`input-${postId}`);
         const text = input.value.trim();
         if (!text) return;
+        
+        // Generate a random ID for referencing unique elements inside the flat list block later
+        const replyId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+
         await updateDoc(doc(db, "vents", postId), {
-            replies: arrayUnion({ username: getMyIdentity(), text: text, time: Date.now() })
+            replies: arrayUnion({ 
+                id: replyId,
+                username: getMyIdentity(), 
+                text: text, 
+                time: Date.now() 
+            })
         });
         input.value = '';
+    };
+
+    window.deleteReply = async (postId, replyId) => {
+        if (!confirm("Remove your reply?")) return;
+        
+        const postDocRef = doc(db, "vents", postId);
+        const postSnap = await getDoc(postDocRef);
+        
+        if (postSnap.exists()) {
+            const currentReplies = postSnap.data().replies || [];
+            const updatedReplies = currentReplies.filter(r => r.id !== replyId);
+            await updateDoc(postDocRef, { replies: updatedReplies });
+        }
     };
 
     // Feed Listener
     onSnapshot(query(postsRef, orderBy("timestamp", "desc"), limit(50)), (snapshot) => {
         const feed = document.getElementById('feed-container');
-        // Optimization: Only update changed elements to prevent "blinking"
         feed.innerHTML = ''; 
         snapshot.forEach((doc) => renderPost(doc.id, doc.data()));
     });
@@ -121,10 +353,18 @@
         const feed = document.getElementById('feed-container');
         const replies = data.replies || [];
         const reactions = JSON.parse(localStorage.getItem('user_reactions') || '{}');
+        const myName = getMyIdentity();
 
         const card = document.createElement('div');
         card.className = 'vent-card';
+        
+        // Setup individual post delete access control
+        const deleteButtonHtml = data.username === myName 
+            ? `<div class="post-del-container"><button class="del-btn" onclick="deletePost('${id}')">Delete</button></div>` 
+            : '';
+
         card.innerHTML = `
+            ${deleteButtonHtml}
             <span class="user-tag">${data.username}</span>
             <p class="vent-text">${data.text}</p>
             
@@ -139,8 +379,21 @@
 
             <div id="replies-${id}" class="replies-section" style="display:none;">
                 <div class="reply-list">
-                    ${replies.slice(0, 5).map(r => `<div class="reply-item"><span class="reply-user">${r.username}</span><p>${r.text}</p></div>`).join('')}
-                    ${replies.length > 5 ? `<button class="read-more-btn" onclick="this.previousElementSibling.style.display='block'; this.remove()">Read more...</button>` : ''}
+                    ${replies.map(r => {
+                        const canDeleteReply = r.username === myName;
+                        return `
+                            <div class="reply-item">
+                                <div class="reply-header">
+                                    <span class="reply-user">${r.username}</span>
+                                    <div class="reply-meta">
+                                        <span class="reply-timestamp">${formatTime(r.time)}</span>
+                                        ${canDeleteReply ? `<button class="del-btn" onclick="deleteReply('${id}', '${r.id}')">✕</button>` : ''}
+                                    </div>
+                                </div>
+                                <p class="reply-text">${r.text}</p>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
                 <div class="reply-input-box">
                     <input type="text" id="input-${id}" placeholder="Write a reply...">
