@@ -17,6 +17,8 @@
         </div>
     </header>
 
+    <div id="toast" class="toast">Sent! Your voice has been heard.</div>
+
     <main class="app-container">
         <section class="post-box">
             <textarea id="vent-input" placeholder="What's weighing on your mind? (Keep it anonymous...)"></textarea>
@@ -25,15 +27,13 @@
             </div>
         </section>
 
-        <section id="feed-container">
-            </section>
+        <section id="feed-container"></section>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Your verified Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDYA5chxtaKErTglotZtwRtLzqjtJf7GJo",
             authDomain: "sanctuary-9859d.firebaseapp.com",
@@ -48,15 +48,40 @@
         const db = getFirestore(app);
         const postsRef = collection(db, "vents");
 
-        // Identity Persistence
         function getMyIdentity() {
-            let myName = localStorage.getItem('sanctuary_user');
-            if (!myName) {
+            const today = new Date().toDateString();
+            let storedName = localStorage.getItem('sanctuary_user');
+            let storedDate = localStorage.getItem('sanctuary_date');
+
+            // Reset if it's a new day or no name exists
+            if (!storedName || storedDate !== today) {
                 const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
-                myName = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
-                localStorage.setItem('sanctuary_user', myName);
+                storedName = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
+                localStorage.setItem('sanctuary_user', storedName);
+                localStorage.setItem('sanctuary_date', today);
             }
-            return myName;
+            return storedName;
+        }
+
+        function formatTime(timestamp) {
+            const now = new Date();
+            const date = new Date(timestamp);
+            const diffInHours = (now - date) / (1000 * 60 * 60);
+            
+            if (diffInHours < 24 && now.getDate() === date.getDate()) {
+                return `Shared at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            } else if (diffInHours < 48 && now.getDate() !== date.getDate()) {
+                return "Shared Yesterday";
+            } else {
+                const days = Math.floor(diffInHours / 24);
+                return `Shared ${days} days ago`;
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         window.createNewPost = async () => {
@@ -67,28 +92,21 @@
                 username: getMyIdentity(),
                 text: text,
                 timestamp: Date.now(),
-                replies: []
+                hugs: 0,
+                hearts: 0,
+                sparkles: 0
             });
             textInput.value = '';
+            showToast();
         };
 
-        window.addReply = async (postId, emojiText = null) => {
-            const input = document.getElementById(`input-${postId}`);
-            const text = emojiText || input.value.trim();
-            if(!text) return;
-
+        window.react = async (postId, type) => {
             const postDoc = doc(db, "vents", postId);
-            await updateDoc(postDoc, {
-                replies: arrayUnion({
-                    username: getMyIdentity(),
-                    text: text,
-                    time: Date.now()
-                })
-            });
-            if(!emojiText) input.value = '';
+            const updateData = {};
+            updateData[type] = increment(1);
+            await updateDoc(postDoc, updateData);
         };
 
-        // Listen for new posts
         const q = query(postsRef, orderBy("timestamp", "desc"), limit(50));
         onSnapshot(q, (snapshot) => {
             const feed = document.getElementById('feed-container');
@@ -98,49 +116,23 @@
 
         function renderPost(id, data) {
             const feed = document.getElementById('feed-container');
-            const timeString = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const replies = data.replies || [];
-
             const card = document.createElement('div');
             card.className = 'vent-card new-post-animation';
             card.innerHTML = `
                 <span class="user-tag">${data.username}</span>
                 <p class="vent-text">${data.text}</p>
-                <div class="card-footer">Shared at ${timeString}</div>
                 
-                <div class="card-actions">
-                    <button class="reply-btn" onclick="toggleReply('${id}')">Conversation (${replies.length})</button>
-                </div>
-
-                <div id="replies-${id}" class="replies-container" style="display:none;">
-                    <div class="emoji-bar">
-                        <span onclick="addReply('${id}', '🤍')">🤍</span>
-                        <span onclick="addReply('${id}', '🫂')">🫂</span>
-                        <span onclick="addReply('${id}', '✨')">✨</span>
-                        <span onclick="addReply('${id}', '🌊')">🌊</span>
-                        <span onclick="addReply('${id}', '🌱')">🌱</span>
+                <div class="card-footer">
+                    <div class="reaction-row">
+                        <button class="react-btn" onclick="react('${id}', 'hugs')">🫂 <span>${data.hugs || 0}</span></button>
+                        <button class="react-btn" onclick="react('${id}', 'hearts')">🤍 <span>${data.hearts || 0}</span></button>
+                        <button class="react-btn" onclick="react('${id}', 'sparkles')">✨ <span>${data.sparkles || 0}</span></button>
                     </div>
-                    <div id="list-${id}">
-                        ${replies.map(r => `
-                            <div class="reply-item">
-                                <span class="reply-user">${r.username}</span>
-                                <div class="reply-body">${r.text}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="reply-input-area">
-                        <input type="text" id="input-${id}" class="reply-field" placeholder="Reply anonymously...">
-                        <button class="reply-submit" onclick="addReply('${id}')">Send</button>
-                    </div>
+                    <span class="timestamp">${formatTime(data.timestamp)}</span>
                 </div>
             `;
             feed.appendChild(card);
         }
-
-        window.toggleReply = (id) => {
-            const el = document.getElementById(`replies-${id}`);
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
-        };
     </script>
 </body>
 </html>
