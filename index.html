@@ -72,11 +72,8 @@
     const installBanner = document.getElementById('pwa-install-banner');
 
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent Chrome 67 and earlier from automatically showing the prompt
         e.preventDefault();
-        // Stash the event so it can be triggered later.
         deferredPrompt = e;
-        // Show our custom banner
         installBanner.classList.add('active');
     });
 
@@ -93,12 +90,11 @@
         installBanner.classList.remove('active');
     });
 
-    // Register simple Service Worker for PWA compliance
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
-    // --- Modal & Identity Logic (Keep existing from previous steps) ---
+    // --- Identity, Time & Delete Logic ---
     let modalCallback = null;
     const modal = document.getElementById('custom-modal');
     
@@ -121,9 +117,13 @@
     function getMyIdentity() {
         const today = new Date().toDateString();
         let name = localStorage.getItem('sanctuary_user');
+        // Check if user exists and if it was generated today
         if (!name || localStorage.getItem('sanctuary_date') !== today) {
             const animals = ['Panda', 'Fox', 'Koala', 'Hedgehog', 'Deer', 'Wolf', 'Otter', 'Lion', 'Falcon', 'Rabbit'];
-            name = `@Anonymous${animals[Math.floor(Math.random() * animals.length)]}`;
+            const randomId = Math.floor(1000 + Math.random() * 9000); // Random 4-digit number
+            const animal = animals[Math.floor(Math.random() * animals.length)];
+            name = `@Anonymous${animal}${randomId}`;
+            
             localStorage.setItem('sanctuary_user', name);
             localStorage.setItem('sanctuary_date', today);
             localStorage.setItem('user_reactions', JSON.stringify({})); 
@@ -133,8 +133,17 @@
 
     function formatTime(timestamp) {
         if (!timestamp) return "";
-        const date = new Date(timestamp);
-        return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        const now = Date.now();
+        const diffInMs = now - timestamp;
+        const msInDay = 24 * 60 * 60 * 1000;
+
+        if (diffInMs >= msInDay) {
+            const daysAgo = Math.floor(diffInMs / msInDay);
+            return `${daysAgo} ${daysAgo === 1 ? 'day' : 'days'} ago`;
+        } else {
+            const date = new Date(timestamp);
+            return `${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
     }
 
     window.createNewPost = async () => {
@@ -205,6 +214,8 @@
 
         const card = document.createElement('div');
         card.className = 'vent-card';
+        
+        // Delete button logic: only visible if current identity matches post username
         const deleteButtonHtml = data.username === myName 
             ? `<div class="post-del-container"><button class="del-btn" onclick="deletePost('${id}')">Delete</button></div>` : '';
 
